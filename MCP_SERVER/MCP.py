@@ -1,23 +1,18 @@
 from fastmcp import FastMCP
-import subprocess
+import requests
 
 mcp = FastMCP("github_fetch")
 
+
 @mcp.tool
 def get_github_readme(user_name: str) -> str:
-    try:
-        subprocess.run(f"git clone https://github.com/{user_name}/{user_name}.git", shell=True, check=True)
+    url = f"https://api.github.com/repos/{user_name}/{user_name}/readme"
+    response = requests.get(url, headers={"Accept": "application/vnd.github.raw"})
 
-        with open(f'{user_name}/README.md', 'r', encoding='utf-8') as file:
-            read_content = file.read()
-
-        return read_content
-
-    except Exception as e:
-        print(f"Error: {e}")
-        return ""
-    finally:
-        subprocess.run(f"rm -rf ./{user_name}", shell=True)
+    if response.status_code == 200:
+        return response.text
+    else:
+        return f"Error: Could not fetch README (status code: {response.status_code})"
 
 
 if __name__ == "__main__":
