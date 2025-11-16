@@ -1,0 +1,26 @@
+# Web Framework
+fastapi
+uvicorn[standard]
+
+# Environment Variables
+python-dotenv
+
+# Data Validation
+pydantic
+
+# HTTP Client & API
+openai
+httpx
+
+# MCP Client
+fastmcp
+
+# Document Processing
+pypdf==5.1.0
+python-docx
+
+# PDF Generation
+reportlab
+
+# File Handling
+python-multipart
