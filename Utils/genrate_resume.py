@@ -1,12 +1,25 @@
 import os
 import random
+from pathlib import Path
 from dotenv import load_dotenv
 from openai import OpenAI
 from fastapi import HTTPException
-from clean_up import *
+from .clean_up import validate_and_fix_format
 
-with open("system_promt.txt", "r") as f:
-    SYSTEM_PROMPT = f.read()
+
+def load_system_prompt() -> str:
+    current_dir = Path(__file__).parent
+    prompt_path = current_dir.parent / "system_promt.txt"
+
+    try:
+        with open(prompt_path, "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        raise FileNotFoundError(f"system_promt.txt not found at {prompt_path}")
+
+
+SYSTEM_PROMPT = load_system_prompt()
+
 
 async def generate_resume_content(user_prompt: str) -> str:
 

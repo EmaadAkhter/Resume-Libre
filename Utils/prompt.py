@@ -1,7 +1,22 @@
 import re
+import re
+from pathlib import Path
 
-with open('../template.md', 'r') as f:
-    TEMPLATE_STRUCTURE = f.read()
+
+def load_template() -> str:
+
+    current_dir = Path(__file__).parent
+    template_path = current_dir.parent / "template.md"
+
+    try:
+        with open(template_path, "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        raise FileNotFoundError(f"template.md not found at {template_path}")
+
+
+TEMPLATE_STRUCTURE = load_template()
+
 
 def extract_contact_info(text: str) -> dict:
 

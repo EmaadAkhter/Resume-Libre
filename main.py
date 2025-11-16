@@ -3,14 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, Literal
 from dotenv import load_dotenv
-import os
-from openai import OpenAI
-from fastmcp import Client
-from fastmcp.client.auth import BearerAuth
-import re
-import random
 from Utils.prompt import build_user_prompt
 from Utils.fetch_readme import fetch_github_readme
+from Utils.genrate_resume import generate_resume_content
 
 load_dotenv()
 

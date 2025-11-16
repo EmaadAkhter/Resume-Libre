@@ -1,5 +1,5 @@
 import os
-import asyncio
+import os
 from fastmcp import Client
 from fastmcp.client.auth import BearerAuth
 from dotenv import load_dotenv
