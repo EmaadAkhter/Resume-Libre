@@ -3,7 +3,7 @@ import { FileText, Settings, X, Copy, Download, Check, AlertCircle } from 'lucid
 import './App.css';
 
 // Configure API URL - change this for production
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';;
+const API_URL = import.meta.env.BACKEND_API_URL || 'http://localhost:8000';;
 
 function App() {
   const [githubUsername, setGithubUsername] = useState('');
