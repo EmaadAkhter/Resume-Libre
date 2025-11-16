@@ -21,7 +21,8 @@ app.add_middleware(
     allow_origins=[
         "https://resume-libre-3e5ynzokd-emaadansaris-projects.vercel.app",
         "https://resume-libre-git-main-emaadansaris-projects.vercel.app",
-        "https://resume-libre-emaadansaris-projects.vercel.app"
+        "https://resume-libre-emaadansaris-projects.vercel.app",
+        "https://resume-libre.vercel.app/",
         
     ],
     allow_credentials=True,
