@@ -19,7 +19,7 @@ app = FastAPI(title="Resume Generator API", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://resume-libre-exgsh2vf4-emaadansaris-projects.vercel.app"
+        "https://resume-libre.vercel.app/"
     ],
     allow_credentials=True,
     allow_methods=["*"],
