@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.min.js"></script>
+    <style>
+        .preview-content {
+            font-family: 'Times New Roman', serif;
+            line-height: 1.6;
+        }
+        .preview-content h1 {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .preview-content h2 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            border-bottom: 2px solid #333;
+        }
+        .preview-content h3 {
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 12px;
+            margin-bottom: 4px;
+        }
+        .preview-content p {
+            margin-bottom: 8px;
+        }
+        .preview-content ul {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+        .preview-content li {
+            margin-bottom: 4px;
+        }
+        .priority-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .priority-option:hover {
+            transform: translateY(-2px);
+        }
+        .priority-selected {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Left Panel -->
+        <div class="w-1/2 border-r border-gray-200 bg-white flex flex-col">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">Resume Generator</h1>
+                <p class="text-sm text-gray-600">Generate ATS-friendly resumes from your GitHub profile</p>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                <!-- GitHub Username -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        GitHub Username
+                    </label>
+                    <input
+                        type="text"
+                        id="githubUsername"
+                        placeholder="e.g., octocat"
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    />
+                    <p class="mt-1.5 text-xs text-gray-500">
+                        We'll fetch your README to extract relevant information
+                    </p>
+                </div>
+
+                <!-- Priority Selection -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">
+                        Resume Focus
+                    </label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="priority-option priority-selected border-2 rounded-lg p-4" data-priority="experience">
+                            <div class="flex items-start gap-3">
+                                <input type="radio" name="priority" value="experience" checked class="mt-1">
+                                <div>
+                                    <div class="font-semibold text-gray-900 mb-1">Experience First</div>
+                                    <div class="text-xs text-gray-600">Emphasize work history and professional experience</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="priority-option border-2 rounded-lg p-4" data-priority="projects">
+                            <div class="flex items-start gap-3">
+                                <input type="radio" name="priority" value="projects" class="mt-1">
+                                <div>
+                                    <div class="font-semibold text-gray-900 mb-1">Projects First</div>
+                                    <div class="text-xs text-gray-600">Highlight technical projects and portfolio work</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="mt-2 text-xs text-gray-500">
+                        Choose what to prioritize in your one-page resume
+                    </p>
+                </div>
+
+                <!-- Additional Info -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Additional Information
+                    </label>
+                    <textarea
+                        id="additionalInfo"
+                        rows="10"
+                        placeholder="Add any additional information or the info you would lik to include if you donta hava github readme like:&#10;- Contact details (email, phone, location)&#10;- Work experience&#10;- Education&#10;- Skills&#10;- Projects&#10;- Certifications"
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none font-mono text-sm"
+                    ></textarea>
+                    <p class="mt-1.5 text-xs text-gray-500">
+                        Provide details not in your GitHub README
+                    </p>
+                </div>
+
+                <!-- Error Message -->
+                <div id="errorMessage" class="hidden p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p class="text-sm text-red-700"></p>
+                </div>
+
+                <!-- Generate Button -->
+                <button
+                    id="generateBtn"
+                    class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-3 px-4 rounded-lg transition"
+                >
+                    Generate Resume
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="w-1/2 bg-gray-50 flex flex-col">
+            <div class="p-6 border-b border-gray-200 bg-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <h2 class="text-xl font-semibold text-gray-900">Resume</h2>
+                    <div id="viewToggle" class="hidden flex bg-gray-100 rounded-lg p-1">
+                        <button
+                            id="editViewBtn"
+                            class="px-3 py-1.5 text-sm font-medium rounded-md transition bg-white shadow-sm"
+                        >
+                            Edit
+                        </button>
+                        <button
+                            id="previewViewBtn"
+                            class="px-3 py-1.5 text-sm font-medium rounded-md transition text-gray-600"
+                        >
+                            Preview
+                        </button>
+                    </div>
+                </div>
+                <div id="actionButtons" class="hidden flex gap-2">
+                    <button
+                        id="copyBtn"
+                        class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition text-sm font-medium"
+                    >
+                        Copy
+                    </button>
+                    <div class="relative">
+                        <button
+                            id="downloadBtn"
+                            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition text-sm font-medium flex items-center gap-2"
+                        >
+                            Download
+                            <span class="text-xs">▼</span>
+                        </button>
+                        <div id="downloadMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                            <button id="downloadMd" class="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 rounded-t-lg">
+                                Download as Markdown
+                            </button>
+                            <button id="downloadPdf" class="w-full px-4 py-2 text-left text-sm hover:bg-gray-50">
+                                Download as PDF
+                            </button>
+                            <button id="downloadDocx" class="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 rounded-b-lg">
+                                Download as DOCX
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6">
+                <!-- Empty State -->
+                <div id="emptyState" class="h-full flex items-center justify-center text-gray-400">
+                    <div class="text-center">
+                        <div class="text-6xl mb-4">📄</div>
+                        <p class="text-lg font-medium">No resume generated yet</p>
+                        <p class="text-sm mt-2">Fill in your information and click "Generate Resume"</p>
+                    </div>
+                </div>
+
+                <!-- Edit View -->
+                <div id="editView" class="hidden bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <textarea
+                        id="resumeEditor"
+                        class="w-full h-full min-h-[600px] p-6 font-mono text-sm text-gray-800 leading-relaxed resize-none focus:outline-none"
+                        placeholder="Your resume will appear here..."
+                    ></textarea>
+                </div>
+
+                <!-- Preview View -->
+                <div id="previewView" class="hidden bg-white rounded-lg border border-gray-200 shadow-sm p-8">
+                    <div id="resumePreview" class="preview-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+
+        const elements = {
+            githubUsername: document.getElementById('githubUsername'),
+            additionalInfo: document.getElementById('additionalInfo'),
+            generateBtn: document.getElementById('generateBtn'),
+            errorMessage: document.getElementById('errorMessage'),
+            emptyState: document.getElementById('emptyState'),
+            editView: document.getElementById('editView'),
+            previewView: document.getElementById('previewView'),
+            resumeEditor: document.getElementById('resumeEditor'),
+            resumePreview: document.getElementById('resumePreview'),
+            actionButtons: document.getElementById('actionButtons'),
+            viewToggle: document.getElementById('viewToggle'),
+            editViewBtn: document.getElementById('editViewBtn'),
+            previewViewBtn: document.getElementById('previewViewBtn'),
+            copyBtn: document.getElementById('copyBtn'),
+            downloadBtn: document.getElementById('downloadBtn'),
+            downloadMenu: document.getElementById('downloadMenu'),
+            downloadMd: document.getElementById('downloadMd'),
+            downloadPdf: document.getElementById('downloadPdf'),
+            downloadDocx: document.getElementById('downloadDocx')
+        };
+
+        let currentView = 'edit';
+
+        // Priority selection handling
+        document.querySelectorAll('.priority-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.priority-option').forEach(opt => {
+                    opt.classList.remove('priority-selected');
+                });
+                this.classList.add('priority-selected');
+                this.querySelector('input[type="radio"]').checked = true;
+            });
+        });
+
+        // Show error
+        function showError(message) {
+            elements.errorMessage.querySelector('p').textContent = message;
+            elements.errorMessage.classList.remove('hidden');
+        }
+
+        // Hide error
+        function hideError() {
+            elements.errorMessage.classList.add('hidden');
+        }
+
+        // Switch between edit and preview
+        function switchView(view) {
+            currentView = view;
+            if (view === 'edit') {
+                elements.editView.classList.remove('hidden');
+                elements.previewView.classList.add('hidden');
+                elements.editViewBtn.classList.add('bg-white', 'shadow-sm');
+                elements.editViewBtn.classList.remove('text-gray-600');
+                elements.previewViewBtn.classList.remove('bg-white', 'shadow-sm');
+                elements.previewViewBtn.classList.add('text-gray-600');
+            } else {
+                elements.editView.classList.add('hidden');
+                elements.previewView.classList.remove('hidden');
+                elements.previewViewBtn.classList.add('bg-white', 'shadow-sm');
+                elements.previewViewBtn.classList.remove('text-gray-600');
+                elements.editViewBtn.classList.remove('bg-white', 'shadow-sm');
+                elements.editViewBtn.classList.add('text-gray-600');
+                updatePreview();
+            }
+        }
+
+        // Update preview from editor
+        function updatePreview() {
+            const markdown = elements.resumeEditor.value;
+            elements.resumePreview.innerHTML = marked.parse(markdown);
+        }
+
+        // Generate Resume
+        elements.generateBtn.addEventListener('click', async () => {
+            const githubUsername = elements.githubUsername.value.trim();
+            const additionalInfo = elements.additionalInfo.value.trim();
+            const priority = document.querySelector('input[name="priority"]:checked').value;
+
+            if (!githubUsername && !additionalInfo) {
+                showError('Please provide either a GitHub username or additional information');
+                return;
+            }
+
+            hideError();
+            elements.generateBtn.disabled = true;
+            elements.generateBtn.textContent = 'Generating Resume...';
+
+            try {
+                const response = await fetch(`${API_URL}/generate-resume`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        github_username: githubUsername || null,
+                        additional_info: additionalInfo || null,
+                        priority: priority
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to generate resume');
+                }
+
+                const data = await response.json();
+                elements.resumeEditor.value = data.resume;
+
+                // Show resume
+                elements.emptyState.classList.add('hidden');
+                elements.editView.classList.remove('hidden');
+                elements.actionButtons.classList.remove('hidden');
+                elements.viewToggle.classList.remove('hidden');
+                switchView('edit');
+
+            } catch (error) {
+                showError(error.message || 'An error occurred while generating the resume');
+            } finally {
+                elements.generateBtn.disabled = false;
+                elements.generateBtn.textContent = 'Generate Resume';
+            }
+        });
+
+        // View toggle
+        elements.editViewBtn.addEventListener('click', () => switchView('edit'));
+        elements.previewViewBtn.addEventListener('click', () => switchView('preview'));
+
+        // Update preview when editing
+        elements.resumeEditor.addEventListener('input', () => {
+            if (currentView === 'preview') {
+                updatePreview();
+            }
+        });
+
+        // Copy to clipboard
+        elements.copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(elements.resumeEditor.value);
+                const originalText = elements.copyBtn.textContent;
+                elements.copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    elements.copyBtn.textContent = originalText;
+                }, 2000);
+            } catch (error) {
+                showError('Failed to copy to clipboard');
+            }
+        });
+
+        // Download menu toggle
+        elements.downloadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            elements.downloadMenu.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', () => {
+            elements.downloadMenu.classList.add('hidden');
+        });
+
+        // Download as Markdown
+        elements.downloadMd.addEventListener('click', () => {
+            const blob = new Blob([elements.resumeEditor.value], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'resume.md';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        // Download as PDF
+        elements.downloadPdf.addEventListener('click', async () => {
+            const originalText = elements.downloadBtn.textContent;
+            elements.downloadBtn.textContent = 'Generating PDF...';
+            elements.downloadBtn.disabled = true;
+
+            try {
+                const tempDiv = document.createElement('div');
+                tempDiv.style.width = '210mm';
+                tempDiv.style.padding = '20mm';
+                tempDiv.style.backgroundColor = 'white';
+                tempDiv.style.fontFamily = 'Times New Roman, serif';
+                tempDiv.style.fontSize = '12pt';
+                tempDiv.style.lineHeight = '1.6';
+                tempDiv.innerHTML = marked.parse(elements.resumeEditor.value);
+
+                tempDiv.querySelectorAll('h1').forEach(h => {
+                    h.style.fontSize = '24pt';
+                    h.style.textAlign = 'center';
+                    h.style.marginBottom = '10pt';
+                });
+                tempDiv.querySelectorAll('h2').forEach(h => {
+                    h.style.fontSize = '18pt';
+                    h.style.borderBottom = '2px solid #333';
+                    h.style.marginTop = '16pt';
+                    h.style.marginBottom = '8pt';
+                });
+                tempDiv.querySelectorAll('h3').forEach(h => {
+                    h.style.fontSize = '14pt';
+                    h.style.marginTop = '12pt';
+                    h.style.marginBottom = '4pt';
+                });
+
+                const opt = {
+                    margin: 0,
+                    filename: 'resume.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                await html2pdf().set(opt).from(tempDiv).save();
+            } catch (error) {
+                showError('Failed to generate PDF');
+            } finally {
+                elements.downloadBtn.textContent = originalText;
+                elements.downloadBtn.disabled = false;
+            }
+        });
+
+        // Download as DOCX
+        elements.downloadDocx.addEventListener('click', async () => {
+            const originalText = elements.downloadBtn.textContent;
+            elements.downloadBtn.textContent = 'Generating DOCX...';
+            elements.downloadBtn.disabled = true;
+
+            try {
+                const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = docx;
+
+                const lines = elements.resumeEditor.value.split('\n');
+                const children = [];
+
+                for (let line of lines) {
+                    line = line.trim();
+                    if (!line) {
+                        children.push(new Paragraph({ text: '' }));
+                        continue;
+                    }
+
+                    if (line.startsWith('# ')) {
+                        children.push(new Paragraph({
+                            text: line.substring(2),
+                            heading: HeadingLevel.HEADING_1,
+                            alignment: AlignmentType.CENTER,
+                        }));
+                    } else if (line.startsWith('## ')) {
+                        children.push(new Paragraph({
+                            text: line.substring(3),
+                            heading: HeadingLevel.HEADING_2,
+                        }));
+                    } else if (line.startsWith('### ')) {
+                        children.push(new Paragraph({
+                            text: line.substring(4),
+                            heading: HeadingLevel.HEADING_3,
+                        }));
+                    } else if (line.startsWith('- ') || line.startsWith('* ')) {
+                        children.push(new Paragraph({
+                            text: line.substring(2),
+                            bullet: { level: 0 },
+                        }));
+                    } else {
+                        children.push(new Paragraph({ text: line }));
+                    }
+                }
+
+                const doc = new Document({
+                    sections: [{
+                        properties: {},
+                        children: children,
+                    }],
+                });
+
+                const blob = await Packer.toBlob(doc);
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'resume.docx';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                showError('Failed to generate DOCX');
+                console.error(error);
+            } finally {
+                elements.downloadBtn.textContent = originalText;
+                elements.downloadBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
