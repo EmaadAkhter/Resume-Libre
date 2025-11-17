@@ -22,7 +22,7 @@ app.add_middleware(
         "https://resume-libre-3e5ynzokd-emaadansaris-projects.vercel.app",
         "https://resume-libre-git-main-emaadansaris-projects.vercel.app",
         "https://resume-libre-emaadansaris-projects.vercel.app",
-        "https://resume-libre.vercel.app/",
+        "https://resume-libre.vercel.app",
         
     ],
     allow_credentials=True,
@@ -208,4 +208,4 @@ if __name__ == "__main__":
 
     print("🚀 Starting Resume Generator API on http://localhost:8000")
     print("📚 API Documentation available at http://localhost:8000/docs")
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False)
