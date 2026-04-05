@@ -9,9 +9,6 @@
 [![Made with React](https://img.shields.io/badge/Made%20with-React%2019-61DAFB?style=for-the-badge&logo=react)](https://react.dev)
 [![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
 
-<br/>
-
-![Resume-Libre Demo](https://via.placeholder.com/900x480/1a1a2e/61DAFB?text=Resume-Libre+%E2%80%94+AI+Resume+Generator)
 
 </div>
 
