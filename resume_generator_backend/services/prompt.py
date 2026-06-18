@@ -23,25 +23,35 @@ def extract_contact_info(text: str) -> dict:
         "phone": "",
         "location": "",
         "linkedin": "",
-        "github": ""
+        "github": "",
     }
 
-    email_match = re.search(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', text)
+    email_match = re.search(
+        r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", text
+    )
     if email_match:
         info["email"] = email_match.group(0)
 
-    phone_match = re.search(r'(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}', text)
+    phone_match = re.search(
+        r"(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}", text
+    )
     if phone_match:
         info["phone"] = phone_match.group(0)
 
-    linkedin_match = re.search(r'linkedin\.com/in/([A-Za-z0-9-]+)', text)
+    linkedin_match = re.search(r"linkedin\.com/in/([A-Za-z0-9-]+)", text)
     if linkedin_match:
         info["linkedin"] = linkedin_match.group(1)
 
     return info
 
 
-def build_user_prompt(github_username: str, readme_content: str, additional_info: str, priority: str, resume_template: str = None) -> str:
+def build_user_prompt(
+    github_username: str,
+    readme_content: str,
+    additional_info: str,
+    priority: str,
+    resume_template: str = None,
+) -> str:
     contact = extract_contact_info(additional_info + " " + readme_content)
 
     if github_username:
@@ -67,13 +77,23 @@ AVAILABLE INFORMATION:
         prompt += f"\nLinkedIn: {contact['linkedin']}"
 
     prompt += "\n\n--- GitHub Profile Content ---\n"
-    prompt += readme_content if readme_content and readme_content.strip() else "(No GitHub profile content available)"
+    prompt += (
+        readme_content
+        if readme_content and readme_content.strip()
+        else "(No GitHub profile content available)"
+    )
 
     prompt += "\n\n--- Additional User Information ---\n"
-    prompt += additional_info if additional_info and additional_info.strip() else "(No additional information provided)"
+    prompt += (
+        additional_info
+        if additional_info and additional_info.strip()
+        else "(No additional information provided)"
+    )
 
     if resume_template:
-        prompt += "\n\n--- Resume Template Structure (use as reference for formatting) ---\n"
+        prompt += (
+            "\n\n--- Resume Template Structure (use as reference for formatting) ---\n"
+        )
         prompt += resume_template
 
     prompt += f"""

@@ -60,8 +60,13 @@ class ResumePipeline:
         readme_content = ""
         if github_username:
             readme_content = await fetch_github_readme(github_username)
-            readme_content = await self._apply_middleware("readme_fetch", readme_content)
-            await bus.publish(Events.README_FETCHED, {"username": github_username, "length": len(readme_content)})
+            readme_content = await self._apply_middleware(
+                "readme_fetch", readme_content
+            )
+            await bus.publish(
+                Events.README_FETCHED,
+                {"username": github_username, "length": len(readme_content)},
+            )
 
         # Stage 2: Build the prompt
         user_prompt = build_user_prompt(
@@ -99,8 +104,13 @@ class ResumePipeline:
         readme_content = ""
         if github_username:
             readme_content = await fetch_github_readme(github_username)
-            readme_content = await self._apply_middleware("readme_fetch", readme_content)
-            await bus.publish(Events.README_FETCHED, {"username": github_username, "length": len(readme_content)})
+            readme_content = await self._apply_middleware(
+                "readme_fetch", readme_content
+            )
+            await bus.publish(
+                Events.README_FETCHED,
+                {"username": github_username, "length": len(readme_content)},
+            )
 
         # Stage 2: Build the prompt
         user_prompt = build_user_prompt(

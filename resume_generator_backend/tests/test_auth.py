@@ -16,8 +16,11 @@ def test_verify_jwt_valid(mock_get_client):
     from core.deps import verify_jwt
     from fastapi.security import HTTPAuthorizationCredentials
 
-    credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials="valid-token")
+    credentials = HTTPAuthorizationCredentials(
+        scheme="Bearer", credentials="valid-token"
+    )
     import asyncio
+
     result = asyncio.run(verify_jwt(credentials))
 
     assert result["id"] == "user-123"
@@ -33,7 +36,9 @@ def test_verify_jwt_invalid(mock_get_client):
     from core.deps import verify_jwt
     from fastapi.security import HTTPAuthorizationCredentials
 
-    credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials="invalid-token")
+    credentials = HTTPAuthorizationCredentials(
+        scheme="Bearer", credentials="invalid-token"
+    )
     import asyncio
 
     with pytest.raises(HTTPException) as exc_info:

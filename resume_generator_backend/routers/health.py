@@ -39,4 +39,6 @@ async def get_system_prompt():
         prompt = load_system_prompt()
         return SystemPromptResponse(prompt=prompt, status="success")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to load system prompt: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to load system prompt: {str(e)}"
+        )

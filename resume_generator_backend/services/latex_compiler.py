@@ -107,7 +107,9 @@ async def compile_latex_pdf(latex_content: str) -> bytes:
             )
 
             if result.returncode != 0:
-                raise RuntimeError(f"Tectonic compilation failed: {result.stderr[:500]}")
+                raise RuntimeError(
+                    f"Tectonic compilation failed: {result.stderr[:500]}"
+                )
 
             if not pdf_path.exists():
                 raise RuntimeError("Tectonic did not produce a PDF file")

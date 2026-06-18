@@ -39,7 +39,9 @@ def _get_model() -> str:
 
 
 async def generate_resume_content(
-    user_prompt: str, custom_system_prompt: Optional[str] = None, template_format: str = "md"
+    user_prompt: str,
+    custom_system_prompt: Optional[str] = None,
+    template_format: str = "md",
 ) -> str:
     """Generate a resume via OpenRouter.
 
@@ -51,7 +53,9 @@ async def generate_resume_content(
     system_prompt = custom_system_prompt if custom_system_prompt else SYSTEM_PROMPT
 
     if template_format == "tex":
-        system_prompt += "\n\nIMPORTANT: Output the resume in LaTeX format, not Markdown."
+        system_prompt += (
+            "\n\nIMPORTANT: Output the resume in LaTeX format, not Markdown."
+        )
     else:
         system_prompt += "\n\nOutput the resume in Markdown format."
 
@@ -75,7 +79,9 @@ async def generate_resume_content(
     resume = completion.choices[0].message.content
 
     if not resume or len(resume.strip()) < 100:
-        raise HTTPException(status_code=500, detail="Generated resume is too short or empty")
+        raise HTTPException(
+            status_code=500, detail="Generated resume is too short or empty"
+        )
 
     resume = validate_and_fix_format(resume)
 
@@ -85,7 +91,9 @@ async def generate_resume_content(
         print("Resume warnings:", validation["warnings"])
 
     if not validation["valid"]:
-        error_msg = "Generated resume has critical issues: " + "; ".join(validation["issues"])
+        error_msg = "Generated resume has critical issues: " + "; ".join(
+            validation["issues"]
+        )
         print(error_msg)
         raise HTTPException(status_code=500, detail=error_msg)
 
@@ -97,7 +105,9 @@ async def generate_resume_content(
 
 
 async def generate_resume_stream(
-    user_prompt: str, custom_system_prompt: Optional[str] = None, template_format: str = "md"
+    user_prompt: str,
+    custom_system_prompt: Optional[str] = None,
+    template_format: str = "md",
 ):
     """Stream resume generation token by token via OpenRouter.
 
@@ -106,7 +116,9 @@ async def generate_resume_stream(
     system_prompt = custom_system_prompt if custom_system_prompt else SYSTEM_PROMPT
 
     if template_format == "tex":
-        system_prompt += "\n\nIMPORTANT: Output the resume in LaTeX format, not Markdown."
+        system_prompt += (
+            "\n\nIMPORTANT: Output the resume in LaTeX format, not Markdown."
+        )
     else:
         system_prompt += "\n\nOutput the resume in Markdown format."
 
@@ -137,4 +149,6 @@ async def generate_resume_stream(
             yield token
 
     if len(full_content.strip()) < 100:
-        raise HTTPException(status_code=500, detail="Generated resume is too short or empty")
+        raise HTTPException(
+            status_code=500, detail="Generated resume is too short or empty"
+        )

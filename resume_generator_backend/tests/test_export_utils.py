@@ -1,4 +1,9 @@
-from services.export_utils import parse_markdown_line, get_filename_base, markdown_to_pdf, markdown_to_docx
+from services.export_utils import (
+    parse_markdown_line,
+    get_filename_base,
+    markdown_to_pdf,
+    markdown_to_docx,
+)
 
 
 def test_parse_markdown_line_plain_text():

@@ -6,40 +6,67 @@ from .auth import get_supabase_client
 def create_resume(user_id: str, name: str, template_id: Optional[str] = None) -> dict:
     client = get_supabase_client()
 
-    result = client.table("resumes").insert({
-        "user_id": user_id,
-        "name": name,
-        "template_id": template_id,
-        "current_branch": "main",
-    }).execute()
+    result = (
+        client.table("resumes")
+        .insert(
+            {
+                "user_id": user_id,
+                "name": name,
+                "template_id": template_id,
+                "current_branch": "main",
+            }
+        )
+        .execute()
+    )
 
     resume = result.data[0]
 
     # Create default 'main' branch
-    client.table("branches").insert({
-        "resume_id": resume["id"],
-        "name": "main",
-        "head_version_id": None,
-    }).execute()
+    client.table("branches").insert(
+        {
+            "resume_id": resume["id"],
+            "name": "main",
+            "head_version_id": None,
+        }
+    ).execute()
 
     return resume
 
 
 def get_resume(user_id: str, resume_id: str) -> Optional[dict]:
     client = get_supabase_client()
-    result = client.table("resumes").select("*").eq("id", resume_id).eq("user_id", user_id).single().execute()
+    result = (
+        client.table("resumes")
+        .select("*")
+        .eq("id", resume_id)
+        .eq("user_id", user_id)
+        .single()
+        .execute()
+    )
     return result.data
 
 
 def list_resumes(user_id: str) -> list:
     client = get_supabase_client()
-    result = client.table("resumes").select("*").eq("user_id", user_id).order("updated_at", desc=True).execute()
+    result = (
+        client.table("resumes")
+        .select("*")
+        .eq("user_id", user_id)
+        .order("updated_at", desc=True)
+        .execute()
+    )
     return result.data
 
 
 def delete_resume(user_id: str, resume_id: str) -> bool:
     client = get_supabase_client()
-    result = client.table("resumes").delete().eq("id", resume_id).eq("user_id", user_id).execute()
+    result = (
+        client.table("resumes")
+        .delete()
+        .eq("id", resume_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
     return len(result.data) > 0
 
 
@@ -56,8 +83,17 @@ def commit_version(
     client = get_supabase_client()
 
     # Find the current head of this branch
-    branch_result = client.table("branches").select("head_version_id").eq("resume_id", resume_id).eq("name", branch_name).single().execute()
-    parent_id = branch_result.data.get("head_version_id") if branch_result.data else None
+    branch_result = (
+        client.table("branches")
+        .select("head_version_id")
+        .eq("resume_id", resume_id)
+        .eq("name", branch_name)
+        .single()
+        .execute()
+    )
+    parent_id = (
+        branch_result.data.get("head_version_id") if branch_result.data else None
+    )
 
     # Insert new version
     version_data = {
@@ -74,15 +110,21 @@ def commit_version(
     version = result.data[0]
 
     # Update branch head
-    client.table("branches").update({"head_version_id": version["id"]}).eq("resume_id", resume_id).eq("name", branch_name).execute()
+    client.table("branches").update({"head_version_id": version["id"]}).eq(
+        "resume_id", resume_id
+    ).eq("name", branch_name).execute()
 
     # Update resume's updated_at
-    client.table("resumes").update({"updated_at": "now()"}).eq("id", resume_id).execute()
+    client.table("resumes").update({"updated_at": "now()"}).eq(
+        "id", resume_id
+    ).execute()
 
     return version
 
 
-def get_history(user_id: str, resume_id: str, branch: str = "main", limit: int = 50) -> list:
+def get_history(
+    user_id: str, resume_id: str, branch: str = "main", limit: int = 50
+) -> list:
     client = get_supabase_client()
     result = (
         client.table("resume_versions")
@@ -109,7 +151,9 @@ def get_version(user_id: str, resume_id: str, version_id: str) -> Optional[dict]
     return result.data
 
 
-def create_branch(user_id: str, resume_id: str, name: str, from_version_id: Optional[str] = None) -> dict:
+def create_branch(
+    user_id: str, resume_id: str, name: str, from_version_id: Optional[str] = None
+) -> dict:
     client = get_supabase_client()
 
     # If no version specified, use current head of current branch
@@ -126,24 +170,40 @@ def create_branch(user_id: str, resume_id: str, name: str, from_version_id: Opti
             .single()
             .execute()
         )
-        from_version_id = branch_result.data.get("head_version_id") if branch_result.data else None
+        from_version_id = (
+            branch_result.data.get("head_version_id") if branch_result.data else None
+        )
 
-    result = client.table("branches").insert({
-        "resume_id": resume_id,
-        "name": name,
-        "head_version_id": from_version_id,
-    }).execute()
+    result = (
+        client.table("branches")
+        .insert(
+            {
+                "resume_id": resume_id,
+                "name": name,
+                "head_version_id": from_version_id,
+            }
+        )
+        .execute()
+    )
 
     return result.data[0]
 
 
 def list_branches(user_id: str, resume_id: str) -> list:
     client = get_supabase_client()
-    result = client.table("branches").select("*").eq("resume_id", resume_id).order("created_at").execute()
+    result = (
+        client.table("branches")
+        .select("*")
+        .eq("resume_id", resume_id)
+        .order("created_at")
+        .execute()
+    )
     return result.data
 
 
-def merge_branch(user_id: str, resume_id: str, source_branch: str, target_branch: str = "main") -> dict:
+def merge_branch(
+    user_id: str, resume_id: str, source_branch: str, target_branch: str = "main"
+) -> dict:
     """Fast-forward merge: moves target branch head to source branch head.
 
     Only works if target is an ancestor of source (true fast-forward).
@@ -164,25 +224,45 @@ def merge_branch(user_id: str, resume_id: str, source_branch: str, target_branch
     if not source_head:
         raise ValueError("Source branch has no commits")
 
-    client.table("branches").update({"head_version_id": source_head}).eq("resume_id", resume_id).eq("name", target_branch).execute()
-    client.table("resumes").update({"current_branch": target_branch, "updated_at": "now()"}).eq("id", resume_id).execute()
+    client.table("branches").update({"head_version_id": source_head}).eq(
+        "resume_id", resume_id
+    ).eq("name", target_branch).execute()
+    client.table("resumes").update(
+        {"current_branch": target_branch, "updated_at": "now()"}
+    ).eq("id", resume_id).execute()
 
-    return {"merged": True, "target_branch": target_branch, "head_version_id": source_head}
+    return {
+        "merged": True,
+        "target_branch": target_branch,
+        "head_version_id": source_head,
+    }
 
 
 def create_tag(user_id: str, resume_id: str, name: str, version_id: str) -> dict:
     client = get_supabase_client()
-    result = client.table("tags").insert({
-        "resume_id": resume_id,
-        "name": name,
-        "version_id": version_id,
-    }).execute()
+    result = (
+        client.table("tags")
+        .insert(
+            {
+                "resume_id": resume_id,
+                "name": name,
+                "version_id": version_id,
+            }
+        )
+        .execute()
+    )
     return result.data[0]
 
 
 def list_tags(user_id: str, resume_id: str) -> list:
     client = get_supabase_client()
-    result = client.table("tags").select("*").eq("resume_id", resume_id).order("created_at").execute()
+    result = (
+        client.table("tags")
+        .select("*")
+        .eq("resume_id", resume_id)
+        .order("created_at")
+        .execute()
+    )
     return result.data
 
 

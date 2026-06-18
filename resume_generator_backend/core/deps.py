@@ -41,7 +41,9 @@ async def get_user_role(user: dict = Depends(verify_jwt)) -> dict:
     Eliminates the duplicated 3-line admin-check that was in every template route.
     """
     client = auth.get_supabase_client()
-    result = client.table("profiles").select("role").eq("id", user["id"]).single().execute()
+    result = (
+        client.table("profiles").select("role").eq("id", user["id"]).single().execute()
+    )
 
     role = result.data.get("role", "user") if result.data else "user"
     return {**user, "role": role}

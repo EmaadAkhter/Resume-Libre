@@ -6,8 +6,12 @@ from services import resume_store
 def test_create_resume(mock_get_client):
     mock_client = MagicMock()
     mock_get_client.return_value = mock_client
-    mock_client.table.return_value.insert.return_value.execute.return_value.data = [{"id": "r1", "name": "My Resume"}]
-    mock_client.table.return_value.insert.return_value.execute.return_value.data = [{"id": "r1"}]
+    mock_client.table.return_value.insert.return_value.execute.return_value.data = [
+        {"id": "r1", "name": "My Resume"}
+    ]
+    mock_client.table.return_value.insert.return_value.execute.return_value.data = [
+        {"id": "r1"}
+    ]
 
     result = resume_store.create_resume("user1", "My Resume")
     assert result["id"] == "r1"
@@ -30,7 +34,9 @@ def test_list_resumes(mock_get_client):
 def test_delete_resume(mock_get_client):
     mock_client = MagicMock()
     mock_get_client.return_value = mock_client
-    mock_client.table.return_value.delete.return_value.eq.return_value.eq.return_value.execute.return_value.data = [{"id": "r1"}]
+    mock_client.table.return_value.delete.return_value.eq.return_value.eq.return_value.execute.return_value.data = [
+        {"id": "r1"}
+    ]
 
     result = resume_store.delete_resume("user1", "r1")
     assert result is True

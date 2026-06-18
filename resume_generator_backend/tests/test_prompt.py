@@ -39,5 +39,7 @@ def test_build_user_prompt_contains_priority():
 
 
 def test_build_user_prompt_with_template():
-    prompt = build_user_prompt("user", "readme", "info", "experience", "TEMPLATE CONTENT")
+    prompt = build_user_prompt(
+        "user", "readme", "info", "experience", "TEMPLATE CONTENT"
+    )
     assert "TEMPLATE CONTENT" in prompt

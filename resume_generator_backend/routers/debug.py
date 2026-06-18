@@ -51,13 +51,16 @@ class DebugEventRelay:
         def make_handler(q: asyncio.Queue, event_name: str) -> Callable:
             def handler(data: Any) -> None:
                 try:
-                    q.put_nowait({
-                        "event": event_name,
-                        "data": _truncate(data),
-                        "ts": datetime.now().strftime("%H:%M:%S.%f")[:-3],
-                    })
+                    q.put_nowait(
+                        {
+                            "event": event_name,
+                            "data": _truncate(data),
+                            "ts": datetime.now().strftime("%H:%M:%S.%f")[:-3],
+                        }
+                    )
                 except asyncio.QueueFull:
                     pass
+
             return handler
 
         handlers = {}
@@ -82,7 +85,10 @@ def _truncate(data: Any) -> Any:
     if isinstance(data, str):
         return data[:200] + "..." if len(data) > 200 else data
     if isinstance(data, dict):
-        return {k: (v[:100] + "..." if isinstance(v, str) and len(v) > 100 else v) for k, v in data.items()}
+        return {
+            k: (v[:100] + "..." if isinstance(v, str) and len(v) > 100 else v)
+            for k, v in data.items()
+        }
     return data
 
 

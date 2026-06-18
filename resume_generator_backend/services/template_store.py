@@ -37,9 +37,13 @@ def list_templates(user_id: str, is_admin: bool = False) -> list:
     return templates
 
 
-def get_template(user_id: str, template_id: str, is_admin: bool = False) -> Optional[dict]:
+def get_template(
+    user_id: str, template_id: str, is_admin: bool = False
+) -> Optional[dict]:
     client = get_supabase_client()
-    result = client.table("templates").select("*").eq("id", template_id).single().execute()
+    result = (
+        client.table("templates").select("*").eq("id", template_id).single().execute()
+    )
 
     if not result.data:
         return None
@@ -66,15 +70,21 @@ def create_template(
 ) -> dict:
     client = get_supabase_client()
 
-    result = client.table("templates").insert({
-        "name": name,
-        "description": description,
-        "content": content,
-        "format": format,
-        "is_admin_only": is_admin_only,
-        "is_public": is_public,
-        "created_by": user_id,
-    }).execute()
+    result = (
+        client.table("templates")
+        .insert(
+            {
+                "name": name,
+                "description": description,
+                "content": content,
+                "format": format,
+                "is_admin_only": is_admin_only,
+                "is_public": is_public,
+                "created_by": user_id,
+            }
+        )
+        .execute()
+    )
 
     return result.data[0]
 
@@ -94,15 +104,19 @@ def update_template(
     if existing["created_by"] != user_id and not is_admin:
         return None
 
-    allowed_fields = {"name", "description", "content", "format", "is_admin_only", "is_public"}
+    allowed_fields = {
+        "name",
+        "description",
+        "content",
+        "format",
+        "is_admin_only",
+        "is_public",
+    }
     clean_updates = {k: v for k, v in updates.items() if k in allowed_fields}
     clean_updates["updated_at"] = "now()"
 
     result = (
-        client.table("templates")
-        .update(clean_updates)
-        .eq("id", template_id)
-        .execute()
+        client.table("templates").update(clean_updates).eq("id", template_id).execute()
     )
 
     return result.data[0] if result.data else None

@@ -24,7 +24,9 @@ async def export_resume(request: ExportRequest):
             return Response(
                 content=pdf_bytes,
                 media_type="application/pdf",
-                headers={"Content-Disposition": f"attachment; filename={filename_base}.pdf"}
+                headers={
+                    "Content-Disposition": f"attachment; filename={filename_base}.pdf"
+                },
             )
 
         elif request.format == "latex_pdf":
@@ -35,15 +37,19 @@ async def export_resume(request: ExportRequest):
             return Response(
                 content=pdf_bytes,
                 media_type="application/pdf",
-                headers={"Content-Disposition": f"attachment; filename={filename_base}.pdf"}
+                headers={
+                    "Content-Disposition": f"attachment; filename={filename_base}.pdf"
+                },
             )
 
         elif request.format == "latex":
             latex = request.latex_content or md_to_latex(request.markdown_content)
             return Response(
-                content=latex.encode('utf-8'),
+                content=latex.encode("utf-8"),
                 media_type="application/x-tex",
-                headers={"Content-Disposition": f"attachment; filename={filename_base}.tex"}
+                headers={
+                    "Content-Disposition": f"attachment; filename={filename_base}.tex"
+                },
             )
 
         elif request.format == "docx":
@@ -51,14 +57,18 @@ async def export_resume(request: ExportRequest):
             return StreamingResponse(
                 docx_buffer,
                 media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                headers={"Content-Disposition": f"attachment; filename={filename_base}.docx"}
+                headers={
+                    "Content-Disposition": f"attachment; filename={filename_base}.docx"
+                },
             )
 
         elif request.format == "md":
             return Response(
-                content=request.markdown_content.encode('utf-8'),
+                content=request.markdown_content.encode("utf-8"),
                 media_type="text/markdown",
-                headers={"Content-Disposition": f"attachment; filename={filename_base}.md"}
+                headers={
+                    "Content-Disposition": f"attachment; filename={filename_base}.md"
+                },
             )
 
         else:
@@ -67,4 +77,6 @@ async def export_resume(request: ExportRequest):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to export resume: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to export resume: {str(e)}"
+        )

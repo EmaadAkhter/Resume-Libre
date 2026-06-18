@@ -1,4 +1,8 @@
-from services.clean_up import clean_markdown_output, validate_and_fix_format, validate_resume_quality
+from services.clean_up import (
+    clean_markdown_output,
+    validate_and_fix_format,
+    validate_resume_quality,
+)
 
 
 def test_clean_markdown_output_strips_code_fences():

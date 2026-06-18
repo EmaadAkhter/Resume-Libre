@@ -40,7 +40,9 @@ async def create_resume(request: ResumeRequest):
         raise
     except Exception as e:
         await bus.publish(Events.VALIDATION_FAILED, {"error": str(e)[:200]})
-        raise HTTPException(status_code=500, detail=f"Failed to generate resume: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to generate resume: {str(e)}"
+        )
 
 
 @router.get("/generate-resume-stream")
@@ -58,7 +60,9 @@ async def stream_resume_generation(
     Final: data: {"event": "done", "content": "..."} with full resume.
     """
     if not github_username and not additional_info:
-        raise HTTPException(status_code=400, detail="Provide github_username or additional_info")
+        raise HTTPException(
+            status_code=400, detail="Provide github_username or additional_info"
+        )
 
     async def event_stream():
         full_content = ""
@@ -74,7 +78,9 @@ async def stream_resume_generation(
                 full_content += token
                 yield f"data: {json.dumps({'event': 'token', 'content': token})}\n\n"
 
-            await bus.publish(Events.LLM_COMPLETED, {"length": len(full_content), "streaming": True})
+            await bus.publish(
+                Events.LLM_COMPLETED, {"length": len(full_content), "streaming": True}
+            )
             yield f"data: {json.dumps({'event': 'done', 'content': full_content})}\n\n"
         except Exception as e:
             await bus.publish(Events.VALIDATION_FAILED, {"error": str(e)[:200]})
@@ -96,30 +102,26 @@ async def extract_resume(file: UploadFile = File(...)):
     try:
         content = await file.read()
 
-        if file.filename.endswith('.pdf'):
+        if file.filename.endswith(".pdf"):
             pdf_reader = pypdf.PdfReader(io.BytesIO(content))
             text = ""
             for page in pdf_reader.pages:
                 text += page.extract_text() + "\n"
 
-        elif file.filename.endswith('.docx'):
+        elif file.filename.endswith(".docx"):
             doc = docx.Document(io.BytesIO(content))
             text = "\n".join([paragraph.text for paragraph in doc.paragraphs])
 
-        elif file.filename.endswith(('.txt', '.md', '.tex')):
-            text = content.decode('utf-8')
+        elif file.filename.endswith((".txt", ".md", ".tex")):
+            text = content.decode("utf-8")
 
         else:
             raise HTTPException(
                 status_code=400,
-                detail="Unsupported file format. Please upload PDF, DOCX, TXT, MD, or TEX files."
+                detail="Unsupported file format. Please upload PDF, DOCX, TXT, MD, or TEX files.",
             )
 
-        return {
-            "text": text.strip(),
-            "filename": file.filename,
-            "status": "success"
-        }
+        return {"text": text.strip(), "filename": file.filename, "status": "success"}
 
     except HTTPException:
         raise

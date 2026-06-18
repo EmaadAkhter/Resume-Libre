@@ -17,10 +17,15 @@ router = APIRouter(prefix="/resumes", tags=["resumes"])
 
 # ─── CRUD ────────────────────────────────────────────
 
+
 @router.post("")
-async def create_resume_record(user: dict = Depends(verify_jwt), req: CreateResumeRequest = ...):
+async def create_resume_record(
+    user: dict = Depends(verify_jwt), req: CreateResumeRequest = ...
+):
     resume = resume_store.create_resume(user["id"], req.name, req.template_id)
-    await bus.publish(Events.RESUME_CREATED, {"resume_id": resume["id"], "name": req.name})
+    await bus.publish(
+        Events.RESUME_CREATED, {"resume_id": resume["id"], "name": req.name}
+    )
     return {"resume": resume, "status": "success"}
 
 
@@ -49,18 +54,34 @@ async def delete_resume_record(resume_id: str, user: dict = Depends(verify_jwt))
 
 # ─── Versioning (Git Model) ──────────────────────────
 
+
 @router.post("/{resume_id}/versions")
-async def commit_resume_version(resume_id: str, req: CommitVersionRequest, user: dict = Depends(verify_jwt)):
+async def commit_resume_version(
+    resume_id: str, req: CommitVersionRequest, user: dict = Depends(verify_jwt)
+):
     version = resume_store.commit_version(
-        user["id"], resume_id, req.content, req.branch_name, req.message,
-        req.latex_content, req.generation_prompt, req.template_id
+        user["id"],
+        resume_id,
+        req.content,
+        req.branch_name,
+        req.message,
+        req.latex_content,
+        req.generation_prompt,
+        req.template_id,
     )
-    await bus.publish(Events.VERSION_COMMITTED, {"resume_id": resume_id, "version_id": version["id"]})
+    await bus.publish(
+        Events.VERSION_COMMITTED, {"resume_id": resume_id, "version_id": version["id"]}
+    )
     return {"version": version, "status": "success"}
 
 
 @router.get("/{resume_id}/versions")
-async def get_resume_history(resume_id: str, branch: str = "main", limit: int = 50, user: dict = Depends(verify_jwt)):
+async def get_resume_history(
+    resume_id: str,
+    branch: str = "main",
+    limit: int = 50,
+    user: dict = Depends(verify_jwt),
+):
     history = resume_store.get_history(user["id"], resume_id, branch, limit)
     return {"versions": history, "status": "success"}
 
@@ -77,9 +98,15 @@ async def get_resume_diff(
 
 
 @router.post("/{resume_id}/branches")
-async def create_resume_branch(resume_id: str, req: CreateBranchRequest, user: dict = Depends(verify_jwt)):
-    branch = resume_store.create_branch(user["id"], resume_id, req.name, req.from_version_id)
-    await bus.publish(Events.BRANCH_CREATED, {"resume_id": resume_id, "branch": req.name})
+async def create_resume_branch(
+    resume_id: str, req: CreateBranchRequest, user: dict = Depends(verify_jwt)
+):
+    branch = resume_store.create_branch(
+        user["id"], resume_id, req.name, req.from_version_id
+    )
+    await bus.publish(
+        Events.BRANCH_CREATED, {"resume_id": resume_id, "branch": req.name}
+    )
     return {"branch": branch, "status": "success"}
 
 
@@ -90,14 +117,27 @@ async def list_resume_branches(resume_id: str, user: dict = Depends(verify_jwt))
 
 
 @router.post("/{resume_id}/merge")
-async def merge_resume_branch(resume_id: str, req: MergeBranchRequest, user: dict = Depends(verify_jwt)):
-    result = resume_store.merge_branch(user["id"], resume_id, req.source_branch, req.target_branch)
-    await bus.publish(Events.BRANCH_MERGED, {"resume_id": resume_id, "source": req.source_branch, "target": req.target_branch})
+async def merge_resume_branch(
+    resume_id: str, req: MergeBranchRequest, user: dict = Depends(verify_jwt)
+):
+    result = resume_store.merge_branch(
+        user["id"], resume_id, req.source_branch, req.target_branch
+    )
+    await bus.publish(
+        Events.BRANCH_MERGED,
+        {
+            "resume_id": resume_id,
+            "source": req.source_branch,
+            "target": req.target_branch,
+        },
+    )
     return {"result": result, "status": "success"}
 
 
 @router.post("/{resume_id}/tags")
-async def create_resume_tag(resume_id: str, req: CreateTagRequest, user: dict = Depends(verify_jwt)):
+async def create_resume_tag(
+    resume_id: str, req: CreateTagRequest, user: dict = Depends(verify_jwt)
+):
     tag = resume_store.create_tag(user["id"], resume_id, req.name, req.version_id)
     await bus.publish(Events.TAG_CREATED, {"resume_id": resume_id, "tag": req.name})
     return {"tag": tag, "status": "success"}

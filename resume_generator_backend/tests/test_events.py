@@ -36,6 +36,7 @@ def test_event_bus_unsubscribe():
 
     def handler(data):
         received.append(data)
+
     bus.subscribe("test:event", handler)
     bus.unsubscribe("test:event", handler)
     asyncio.run(bus.publish("test:event", "hello"))
