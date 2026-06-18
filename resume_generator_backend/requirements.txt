@@ -12,15 +12,22 @@ pydantic
 openai
 httpx
 
-# MCP Client
-fastmcp
+# Supabase (Auth + Database)
+supabase
+PyJWT
 
 # Document Processing
 pypdf==5.1.0
 python-docx
 
-# PDF Generation
+# PDF Generation (fallback, Tectonic is primary)
 reportlab
 
 # File Handling
 python-multipart
+
+# Diff (for resume version comparison — stdlib has difflib, no extra dep needed)
+
+# Testing
+pytest
+pytest-asyncio
