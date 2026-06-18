@@ -14,7 +14,7 @@ vi.mock('../lib/supabase', () => ({
         })),
       })),
       insert: vi.fn(() => ({ select: vi.fn(() => ({ single: vi.fn(() => ({ data: {} })) })) })),
-    }),
+    })),
   },
 }))
 

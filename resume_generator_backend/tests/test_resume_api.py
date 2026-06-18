@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 
 @patch("services.auth.get_supabase_client")
@@ -69,6 +69,6 @@ def test_protected_resume_endpoints_require_auth(mock_get_client):
     from main import app
     client = TestClient(app)
 
-    # Without auth header, should get 403 (missing bearer)
+    # Without auth header, should get 401 (missing bearer)
     response = client.get("/resumes")
-    assert response.status_code == 403
+    assert response.status_code == 401

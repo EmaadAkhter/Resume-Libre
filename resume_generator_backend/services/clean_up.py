@@ -49,7 +49,7 @@ def validate_and_fix_format(resume: str) -> str:
 
     result = '\n'.join(cleaned)
 
-    content_lines = [l for l in result.split('\n') if l.strip()]
+    content_lines = [line for line in result.split('\n') if line.strip()]
     if len(content_lines) > 40:
         print(f"Warning: Resume has {len(content_lines)} content lines (recommended: 35-40)")
 
@@ -84,7 +84,7 @@ def validate_resume_quality(resume: str) -> dict:
         if phrase.lower() in resume.lower():
             warnings.append(f"Found generic phrase: '{phrase}' - consider being more specific")
 
-    content_lines = [l for l in resume.split('\n') if l.strip()]
+    content_lines = [line for line in resume.split('\n') if line.strip()]
     if len(content_lines) > 45:
         warnings.append(f"Resume has {len(content_lines)} lines - consider trimming to 35-40 for one page")
 

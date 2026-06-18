@@ -4,7 +4,6 @@ from openai import OpenAI
 from fastapi import HTTPException
 
 from .clean_up import validate_and_fix_format, validate_resume_quality
-from .events import bus
 
 
 def load_system_prompt() -> str:

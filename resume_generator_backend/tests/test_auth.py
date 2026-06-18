@@ -53,7 +53,7 @@ def test_require_admin_passes(mock_get_client):
     from core.deps import require_admin
     import asyncio
 
-    user = {"id": "admin-123", "email": "admin@test.com"}
+    user = {"id": "admin-123", "email": "admin@test.com", "role": "admin"}
     result = asyncio.run(require_admin(user))
     assert result["id"] == "admin-123"
 
@@ -69,7 +69,7 @@ def test_require_admin_fails_for_non_admin(mock_get_client):
     from core.deps import require_admin
     import asyncio
 
-    user = {"id": "user-123", "email": "user@test.com"}
+    user = {"id": "user-123", "email": "user@test.com", "role": "user"}
     with pytest.raises(HTTPException) as exc_info:
         asyncio.run(require_admin(user))
 

@@ -2,9 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from services.events import bus
-from services.pipeline import pipeline
 from core.logging import EventLoggingSubscriber, RequestResponseMiddleware
-from core.event_types import Events
 
 
 def create_app() -> FastAPI:

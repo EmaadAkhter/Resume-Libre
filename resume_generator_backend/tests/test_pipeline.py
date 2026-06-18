@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
 from services.pipeline import ResumePipeline
 
 
@@ -32,15 +31,19 @@ def test_pipeline_on_prompt_build_adds_middleware(pipeline):
 
 
 def test_pipeline_apply_middleware_transforms_data(pipeline):
+    import asyncio
+
     def upper(data):
         return data.upper()
 
     pipeline.on_prompt_build(upper)
-    result = asyncio_run(pipeline._apply_middleware("prompt_build", "hello"))
+    result = asyncio.run(pipeline._apply_middleware("prompt_build", "hello"))
     assert result == "HELLO"
 
 
 def test_pipeline_apply_middleware_chained(pipeline):
+    import asyncio
+
     def add_a(data):
         return data + "a"
 
@@ -49,10 +52,5 @@ def test_pipeline_apply_middleware_chained(pipeline):
 
     pipeline.on_prompt_build(add_a)
     pipeline.on_prompt_build(add_b)
-    result = asyncio_run(pipeline._apply_middleware("prompt_build", ""))
+    result = asyncio.run(pipeline._apply_middleware("prompt_build", ""))
     assert result == "ab"
-
-
-def asyncio_run(coro):
-    import asyncio
-    return asyncio.run(coro)

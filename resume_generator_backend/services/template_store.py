@@ -12,7 +12,7 @@ def list_templates(user_id: str, is_admin: bool = False) -> list:
         result = (
             client.table("templates")
             .select("*")
-            .or_(f"is_public.eq.true,and(is_admin_only.eq.false)")
+            .or_("is_public.eq.true,and(is_admin_only.eq.false)")
             .order("created_at")
             .execute()
         )

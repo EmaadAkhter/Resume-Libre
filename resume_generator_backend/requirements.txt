@@ -27,3 +27,7 @@ reportlab
 python-multipart
 
 # Diff (for resume version comparison — stdlib has difflib, no extra dep needed)
+
+# Testing
+pytest
+pytest-asyncio
