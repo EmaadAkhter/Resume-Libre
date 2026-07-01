@@ -2,9 +2,9 @@
 
 # Resume-Libre
 
-**AI-powered resume generator that transforms your GitHub profile & experience into an ATS-ready, one-page resume — in seconds.**
+**AI-powered resume generator that transforms your GitHub profile, LinkedIn, and experience into an ATS-ready, one-page resume — in seconds.**
 
-[![Backend](https://img.shields.io/badge/Backend-Python-46E3B7?style=for-the-badge&logo=python)](https://resume-libre.onrender.com)
+[![Backend](https://img.shields.io/badge/Backend-Python-46E3B7?style=for-the-badge&logo=python)](https://github.com/EmaadAkhter/resume-libre)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 [![Made with React](https://img.shields.io/badge/Made%20with-React%2019-61DAFB?style=for-the-badge&logo=react)](https://react.dev)
 [![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
@@ -15,9 +15,9 @@
 
 ## What is Resume-Libre?
 
-Resume-Libre is a full-stack application that reads your **GitHub profile README**, combines it with any extra information you provide, and uses a large language model to produce a polished, **ATS-friendly one-page resume** — formatted in Markdown with live preview, editable output, and export to PDF (ReportLab or LaTeX), DOCX, or Markdown.
+Resume-Libre is a full-stack application that reads your **GitHub profile README**, optionally scrapes your **LinkedIn profile** via Apify, combines it with any extra information and a **job description** you provide, and uses a large language model to produce a polished, **ATS-friendly one-page resume** — formatted in Markdown with live preview, editable output, and export to PDF (ReportLab or LaTeX), DOCX, or Markdown.
 
-No templates to fight. No forms to fill for 20 minutes. Just paste your GitHub username and go.
+No templates to fight. No forms to fill for 20 minutes. Paste your GitHub username, drop your LinkedIn URL, and go.
 
 ---
 
@@ -25,8 +25,10 @@ No templates to fight. No forms to fill for 20 minutes. Just paste your GitHub u
 
 | Feature | Details |
 |---|---|
-| **AI Generation** | Powered by multiple LLMs via OpenRouter with automatic key rotation |
+| **AI Generation** | Powered by any LLM via OpenRouter (single configurable model) |
 | **GitHub Integration** | Fetches your profile README via `httpx` — no MCP server needed |
+| **LinkedIn Scraping** | Scrapes LinkedIn profile via Apify actor (`datadoping~linkedin-profile-scraper`) |
+| **Job Description Targeting** | Tailor output to a specific role — feed in the JD and the LLM aligns priorities |
 | **Resume Upload** | Extracts text from existing PDF/DOCX/TXT resumes as context or template |
 | **Focus Modes** | Experience-first or Projects-first section ordering |
 | **Live Editor** | Edit the raw Markdown in-browser after generation |
@@ -35,7 +37,8 @@ No templates to fight. No forms to fill for 20 minutes. Just paste your GitHub u
 | **Custom System Prompt** | Override the AI's instructions for full formatting control |
 | **Version Control** | Branch, commit, diff, and rollback resumes — like git for resumes |
 | **User Auth** | Supabase authentication with login/register flow |
-| **Template Library** | Save, share, and reuse custom resume templates |
+| **Template Library** | Save, share, and reuse custom resume templates (`.md` or `.tex`) |
+| **Admin Templates** | Admin role controls the public template library |
 | **Streaming** | Real-time token-by-token generation via SSE |
 | **Event Bus** | In-process pub/sub for logging, metrics, and debugging |
 | **Responsive UI** | Full mobile layout with dedicated form/resume views |
@@ -56,7 +59,7 @@ resume-libre/
 │   │   │   ├── Login.jsx            # Supabase auth
 │   │   │   └── Register.jsx
 │   │   ├── components/              # Reusable UI components
-│   │   │   ├── ResumeForm.jsx       # Input form (GitHub, upload, focus)
+│   │   │   ├── ResumeForm.jsx       # Input form (GitHub, LinkedIn, upload, focus)
 │   │   │   ├── ExportMenu.jsx       # Export dropdown (PDF/Latex/DOCX/MD)
 │   │   │   ├── BackendStatusBanner.jsx  # Health poll + connect banner
 │   │   │   ├── MarkdownEditor.jsx
@@ -82,7 +85,7 @@ resume-libre/
 │   └── vite.config.js
 │
 ├── resume_generator_backend/        # FastAPI (Python)
-│   ├── main.py                      # Entry point, uvicorn runner
+│   ├── main.py                      # Entry point, uvicorn runner (4 workers)
 │   ├── core/
 │   │   ├── app.py                   # App factory — CORS, middleware, routers
 │   │   ├── deps.py                  # Dependency injection (Supabase client)
@@ -102,42 +105,162 @@ resume-libre/
 │   ├── services/                    # Business logic
 │   │   ├── pipeline.py              # Event-driven generation pipeline
 │   │   ├── events.py                # In-process async pub/sub bus
-│   │   ├── genrate_resume.py        # OpenRouter LLM call with key rotation
+│   │   ├── genrate_resume.py        # OpenRouter LLM call
 │   │   ├── github.py                # Async GitHub README fetcher (httpx)
+│   │   ├── linkedin.py              # LinkedIn scraper via Apify
 │   │   ├── prompt.py                # Prompt construction + contact extraction
 │   │   ├── export_utils.py          # PDF (ReportLab) + DOCX export
 │   │   ├── latex_compiler.py        # Markdown→LaTeX→PDF via Tectonic
 │   │   ├── clean_up.py              # Markdown validation + quality checks
 │   │   ├── auth.py                  # Supabase auth helpers
 │   │   ├── resume_store.py          # Resume CRUD + branching/versioning
-│   │   ├── template_store.py        # Template CRUD
-│   │   └── template_store.py
+│   │   └── template_store.py        # Template CRUD
 │   ├── tests/                       # Pytest suite
 │   └── system_promt.txt             # Master LLM system prompt
 │
-├── supabase/                        # Supabase config
-├── docker-compose.yml               # Dev: backend + frontend
-├── docker-compose.prod.yml          # Prod: backend + frontend (nginx)
+├── supabase/                        # Supabase config + migrations
+├── docker-compose.yml               # Dev: backend + frontend (hot reload)
+├── docker-compose.prod.yml          # Prod: Caddy + backend + frontend (nginx)
 └── .env.example
 ```
 
 ### Data flow
 
+```mermaid
+flowchart TD
+    A[GitHub Username] --> GH[github.py\nfetch README]
+    B[LinkedIn URL] --> LI[linkedin.py\nApify scrape]
+    C[Additional Info] --> PB
+    D[Uploaded Resume\nPDF / DOCX / TXT] --> PB
+    E[Job Description] --> PB
+
+    GH --> PB[prompt.py\nbuild prompt]
+    LI --> PB
+
+    PB --> LLM[OpenRouter LLM\ngenerate_resume.py]
+    LLM --> CL[clean_up.py\nvalidate + ATS check]
+
+    CL --> MD[Markdown]
+    CL --> EX[export_utils.py]
+    CL --> LC[latex_compiler.py]
+
+    EX --> PDF[PDF — ReportLab]
+    EX --> DOCX[DOCX]
+    LC --> LPDF[PDF — Tectonic]
+    MD --> SRC[Markdown / LaTeX source]
 ```
-GitHub Username ──► github.py ──► GitHub API ──► README text
-                                                       │
-Additional Info ─────────────────────────────► Prompt Builder
-                                                       │
-Uploaded Resume ─────────────────────────────►         │
-                                                       ▼
-                                              OpenRouter LLM
-                                                       │
-                                                       ▼
-                                            Validated Markdown Resume
-                                                       │
-                              ┌────────────────────────┤──────────────────┐
-                              ▼                        ▼                  ▼
-                          PDF (ReportLab)         PDF (Tectonic)     DOCX / MD
+
+### Event cycle
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Pipeline
+    participant EventBus
+    participant Logger as EventLoggingSubscriber
+    participant Debug as GET /debug/events
+
+    note over EventBus,Debug: subscribers always active
+
+    Client->>Pipeline: POST /generate-resume
+    Pipeline->>EventBus: API_REQUEST
+    Pipeline->>EventBus: README_FETCHED
+    Pipeline->>EventBus: PROMPT_BUILT
+    Pipeline->>EventBus: LLM_GENERATING
+
+    loop token stream
+        Pipeline->>EventBus: LLM_TOKEN
+    end
+
+    Pipeline->>EventBus: LLM_COMPLETED
+
+    alt validation passes
+        Pipeline->>EventBus: VALIDATION_PASSED
+        Pipeline-->>Client: resume content
+    else validation fails
+        Pipeline->>EventBus: VALIDATION_FAILED
+        Pipeline-->>Client: 422 error
+    end
+
+    note over EventBus: CRUD ops also emit events
+    note over EventBus: RESUME_CREATED, VERSION_COMMITTED
+    note over EventBus: BRANCH_CREATED, BRANCH_MERGED, TAG_CREATED
+    note over EventBus: TEMPLATE_SELECTED, TEMPLATE_UPLOADED
+```
+
+### Database schema
+
+```mermaid
+erDiagram
+    PROFILES ||--o{ RESUMES : "owns"
+    RESUMES ||--o{ RESUME_VERSIONS : "has"
+    RESUMES ||--o{ BRANCHES : "has"
+    RESUMES ||--o{ TAGS : "has"
+    RESUME_VERSIONS ||--o{ RESUME_VERSIONS : "parent of"
+    BRANCHES }o--o| RESUME_VERSIONS : "head"
+    TAGS }o--|| RESUME_VERSIONS : "points to"
+    TEMPLATES }o--o{ RESUMES : "used by"
+    TEMPLATES }o--o{ RESUME_VERSIONS : "used in"
+
+    PROFILES {
+        uuid id PK
+        text email
+        text display_name
+        text role "user | admin"
+        timestamptz created_at
+    }
+
+    RESUMES {
+        uuid id PK
+        uuid user_id FK
+        text name
+        uuid template_id FK
+        text current_branch
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    RESUME_VERSIONS {
+        uuid id PK
+        uuid resume_id FK
+        uuid parent_version_id FK
+        text branch_name
+        text message
+        text content
+        text latex_content
+        text generation_prompt
+        uuid template_id FK
+        timestamptz created_at
+    }
+
+    BRANCHES {
+        uuid id PK
+        uuid resume_id FK
+        text name
+        uuid head_version_id FK
+        timestamptz created_at
+    }
+
+    TAGS {
+        uuid id PK
+        uuid resume_id FK
+        text name
+        uuid version_id FK
+        timestamptz created_at
+    }
+
+    TEMPLATES {
+        uuid id PK
+        text name
+        text description
+        text content
+        text format "md | tex"
+        boolean is_admin_only
+        boolean is_public
+        uuid created_by FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
 ```
 
 ---
@@ -156,8 +279,9 @@ Uploaded Resume ─────────────────────�
 
 ### Backend
 - **FastAPI** — Async Python web framework
-- **OpenRouter** — Multi-model LLM API (with key rotation)
+- **OpenRouter** — Multi-model LLM API (configurable model)
 - **httpx** — Async HTTP client for GitHub API
+- **Apify** — LinkedIn profile scraping
 - **ReportLab** — PDF generation (basic)
 - **Tectonic** — LaTeX→PDF compiler (for latex_pdf export)
 - **python-docx** — DOCX generation
@@ -166,9 +290,10 @@ Uploaded Resume ─────────────────────�
 - **python-dotenv** — Environment config
 
 ### Infrastructure
-- **Vercel** — Frontend hosting
-- **Render** — Backend hosting
-- **Docker** — Local dev and production containers
+- **Hostinger KVM2** — VPS (2 GB RAM, 1 vCPU, 40 GB SSD)
+- **Caddy** — Reverse proxy + automatic SSL (Let's Encrypt)
+- **Docker Compose** — Container orchestration
+- **GitHub Actions** — CI (ruff lint + format, pytest, vitest)
 
 ---
 
@@ -176,10 +301,11 @@ Uploaded Resume ─────────────────────�
 
 ### Prerequisites
 
-- Node.js 18+
-- Python 3.10+
+- Node.js 20+
+- Python 3.11+
 - An [OpenRouter](https://openrouter.ai) API key
 - (Optional) [Tectonic](https://tectonic-typesetting.github.io/) for LaTeX PDF export
+- (Optional) [Apify](https://apify.com) account for LinkedIn scraping
 
 ### 1. Clone the repo
 
@@ -214,7 +340,11 @@ VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIs...
 VITE_API_URL=http://localhost:8000
 
-# LaTeX compilation (Tectonic)
+# Apify (LinkedIn scraping — optional)
+APIFY_API_TOKEN=apify_api_...
+LINKEDIN_COOKIE=AQE...  # li_at cookie from your browser
+
+# LaTeX compilation (Tectonic — optional)
 TECTONIC_PATH=/opt/homebrew/bin/tectonic
 ```
 
@@ -234,7 +364,7 @@ npm install
 npm run dev
 ```
 
-The dev server runs on `http://localhost:5173` (Vite default). `VITE_API_URL` defaults to `http://localhost:8000` for local dev — no manual URL config needed.
+The dev server runs on `http://localhost:3000`.
 
 ### 4. Docker (optional)
 
@@ -242,11 +372,11 @@ The dev server runs on `http://localhost:5173` (Vite default). `VITE_API_URL` de
 # Dev mode (hot reload)
 docker compose up
 
-# Production mode
+# Production mode (nginx + caddy)
 docker compose -f docker-compose.prod.yml up
 ```
 
-In production the frontend is served by nginx, which proxies `/api/*` to the backend.
+In production the frontend is served by nginx, which proxies `/api/*` to the backend. Caddy handles SSL termination.
 
 ---
 
@@ -264,9 +394,12 @@ In production the frontend is served by nginx, which proxies `/api/*` to the bac
 | `POST` | `/resumes` | Create a new resume |
 | `GET` | `/resumes/{id}` | Get a resume with full version tree |
 | `POST` | `/resumes/{id}/versions` | Commit a new version |
-| `POST` | `/resumes/{id}/branches` | Create a branch |
-| `POST` | `/resumes/{id}/merge` | Merge branches |
+| `GET` | `/resumes/{id}/versions` | Get version history |
 | `GET` | `/resumes/{id}/diff` | Diff two versions |
+| `POST` | `/resumes/{id}/branches` | Create a branch |
+| `GET` | `/resumes/{id}/branches` | List branches |
+| `POST` | `/resumes/{id}/merge` | Merge branches |
+| `POST` | `/resumes/{id}/tags` | Tag a version |
 | `GET` | `/templates` | List available templates |
 | `POST` | `/templates` | Create a template |
 | `GET` | `/debug/events` | SSE stream of all internal events |
@@ -276,7 +409,9 @@ In production the frontend is served by nginx, which proxies `/api/*` to the bac
 ```json
 {
   "github_username": "octocat",
+  "linkedin_url": "https://linkedin.com/in/octocat",
   "additional_info": "Senior engineer at Acme Corp. Email: hi@example.com",
+  "job_description": "We're looking for a backend engineer with Python and Kubernetes experience.",
   "priority": "experience",
   "custom_system_prompt": null,
   "resume_template": null,
@@ -324,12 +459,6 @@ Output is validated by `clean_up.py` which strips artifacts and rejects low-qual
 
 ---
 
-## LLM Key Rotation
-
-The backend uses `OPENROUTER_API_KEY` and `OPENROUTER_MODEL` from `.env`. For multi-key rotation, configure `O_R_API1`–`O_R_API6` and `MODEL1`–`MODEL6` (the old env format is still supported).
-
----
-
 ## Export Formats
 
 | Format | Label | Engine | Requires |
@@ -352,12 +481,12 @@ The frontend was migrated from Create React App to **Vite** for faster dev build
 
 Contributions are welcome! Areas that could use improvement:
 
-- [ ] LinkedIn profile URL scraping
 - [ ] Resume scoring / ATS keyword analysis
 - [ ] Multi-page resume support
 - [ ] Dark mode
 - [ ] Rate limiting & abuse protection
 - [ ] End-to-end tests
+- [ ] WhatsApp OTP via OpenWA
 
 To contribute:
 
