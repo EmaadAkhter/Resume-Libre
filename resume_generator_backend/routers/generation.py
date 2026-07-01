@@ -18,16 +18,18 @@ router = APIRouter(tags=["generation"])
 
 @router.post("/generate-resume", response_model=ResumeResponse)
 async def create_resume(request: ResumeRequest):
-    if not request.github_username and not request.additional_info:
+    if not request.github_username and not request.additional_info and not request.linkedin_url:
         raise HTTPException(
             status_code=400,
-            detail="Please provide either a GitHub username or additional information",
+            detail="Please provide either a GitHub username, LinkedIn URL, or additional information",
         )
 
     try:
         resume = await pipeline.run(
             github_username=request.github_username or "",
+            linkedin_url=request.linkedin_url or "",
             additional_info=request.additional_info or "",
+            job_description=request.job_description or "",
             priority=request.priority,
             custom_system_prompt=request.custom_system_prompt,
             resume_template=request.resume_template,
@@ -48,7 +50,9 @@ async def create_resume(request: ResumeRequest):
 @router.get("/generate-resume-stream")
 async def stream_resume_generation(
     github_username: Optional[str] = Query(None),
+    linkedin_url: Optional[str] = Query(None),
     additional_info: Optional[str] = Query(None),
+    job_description: Optional[str] = Query(None),
     priority: str = Query("experience"),
     custom_system_prompt: Optional[str] = Query(None),
     resume_template: Optional[str] = Query(None),
@@ -59,9 +63,9 @@ async def stream_resume_generation(
     Emits: data: {"event": "token", "content": "..."} for each token.
     Final: data: {"event": "done", "content": "..."} with full resume.
     """
-    if not github_username and not additional_info:
+    if not github_username and not additional_info and not linkedin_url:
         raise HTTPException(
-            status_code=400, detail="Provide github_username or additional_info"
+            status_code=400, detail="Provide github_username, linkedin_url, or additional_info"
         )
 
     async def event_stream():
@@ -69,7 +73,9 @@ async def stream_resume_generation(
         try:
             async for token in pipeline.run_stream(
                 github_username=github_username or "",
+                linkedin_url=linkedin_url or "",
                 additional_info=additional_info or "",
+                job_description=job_description or "",
                 priority=priority,
                 custom_system_prompt=custom_system_prompt,
                 resume_template=resume_template,

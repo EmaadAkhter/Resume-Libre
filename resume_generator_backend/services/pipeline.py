@@ -1,6 +1,7 @@
 from typing import Optional, Callable, Any
 from services.events import bus
 from services.github import fetch_github_readme
+from services.linkedin import fetch_linkedin_profile
 from services.prompt import build_user_prompt
 from services.genrate_resume import generate_resume_content, generate_resume_stream
 from core.event_types import Events
@@ -48,7 +49,9 @@ class ResumePipeline:
     async def run(
         self,
         github_username: str = "",
+        linkedin_url: str = "",
         additional_info: str = "",
+        job_description: str = "",
         priority: str = "experience",
         custom_system_prompt: Optional[str] = None,
         resume_template: Optional[str] = None,
@@ -68,6 +71,12 @@ class ResumePipeline:
                 {"username": github_username, "length": len(readme_content)},
             )
 
+        # Stage 1b: Fetch LinkedIn profile
+        linkedin_data = {}
+        if linkedin_url:
+            linkedin_data = await fetch_linkedin_profile(linkedin_url)
+            await bus.publish(Events.README_FETCHED, {"linkedin": True, "fields": len(linkedin_data)})
+
         # Stage 2: Build the prompt
         user_prompt = build_user_prompt(
             github_username,
@@ -75,6 +84,8 @@ class ResumePipeline:
             additional_info,
             priority,
             resume_template,
+            linkedin_data=linkedin_data,
+            job_description=job_description,
         )
         user_prompt = await self._apply_middleware("prompt_build", user_prompt)
         await bus.publish(Events.PROMPT_BUILT, {"length": len(user_prompt)})
@@ -92,7 +103,9 @@ class ResumePipeline:
     async def run_stream(
         self,
         github_username: str = "",
+        linkedin_url: str = "",
         additional_info: str = "",
+        job_description: str = "",
         priority: str = "experience",
         custom_system_prompt: Optional[str] = None,
         resume_template: Optional[str] = None,
@@ -112,6 +125,12 @@ class ResumePipeline:
                 {"username": github_username, "length": len(readme_content)},
             )
 
+        # Stage 1b: Fetch LinkedIn profile
+        linkedin_data = {}
+        if linkedin_url:
+            linkedin_data = await fetch_linkedin_profile(linkedin_url)
+            await bus.publish(Events.README_FETCHED, {"linkedin": True, "fields": len(linkedin_data)})
+
         # Stage 2: Build the prompt
         user_prompt = build_user_prompt(
             github_username,
@@ -119,6 +138,8 @@ class ResumePipeline:
             additional_info,
             priority,
             resume_template,
+            linkedin_data=linkedin_data,
+            job_description=job_description,
         )
         user_prompt = await self._apply_middleware("prompt_build", user_prompt)
         await bus.publish(Events.PROMPT_BUILT, {"length": len(user_prompt)})

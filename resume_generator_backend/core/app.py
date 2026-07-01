@@ -14,6 +14,8 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=[
             "http://localhost:3000",
+            "http://localhost:3001",
+            "http://localhost:3002",
             "http://localhost:5173",
             "https://resume-libre.vercel.app",
             "https://resume-libre-emaadansaris-projects.vercel.app",

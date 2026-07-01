@@ -83,23 +83,20 @@ async def generate_resume_content(
             status_code=500, detail="Generated resume is too short or empty"
         )
 
-    resume = validate_and_fix_format(resume)
-
-    validation = validate_resume_quality(resume)
-
-    if validation["warnings"]:
-        print("Resume warnings:", validation["warnings"])
-
-    if not validation["valid"]:
-        error_msg = "Generated resume has critical issues: " + "; ".join(
-            validation["issues"]
-        )
-        print(error_msg)
-        raise HTTPException(status_code=500, detail=error_msg)
-
-    words = len(resume.split())
-    lines = validation["line_count"]
-    print(f"Generated resume: {words} words, {lines} content lines")
+    if template_format != "tex":
+        resume = validate_and_fix_format(resume)
+        validation = validate_resume_quality(resume)
+        if validation["warnings"]:
+            print("Resume warnings:", validation["warnings"])
+        if not validation["valid"]:
+            error_msg = "Generated resume has critical issues: " + "; ".join(
+                validation["issues"]
+            )
+            print(error_msg)
+            raise HTTPException(status_code=500, detail=error_msg)
+        words = len(resume.split())
+        lines = validation["line_count"]
+        print(f"Generated resume: {words} words, {lines} content lines")
 
     return resume.strip()
 

@@ -14,7 +14,9 @@ export default function ResumeForm({
   user,
 }) {
   const [githubUsername, setGithubUsername] = useState('')
+  const [linkedinUrl, setLinkedinUrl] = useState('')
   const [additionalInfo, setAdditionalInfo] = useState('')
+  const [jobDescription, setJobDescription] = useState('')
   const [priority, setPriority] = useState('experience')
   const [uploadedFile, setUploadedFile] = useState(null)
   const [uploadedResumeText, setUploadedResumeText] = useState(null)
@@ -88,10 +90,10 @@ export default function ResumeForm({
   }
 
   const handleGenerate = () => {
-    if (!githubUsername && !additionalInfo) {
+    if (!githubUsername && !linkedinUrl && !additionalInfo) {
       eventBus.emit(EVENTS.NOTIFICATION_SHOW, {
         type: 'error',
-        message: 'Please provide a GitHub username or additional information',
+        message: 'Please provide a GitHub username, LinkedIn URL, or additional information',
       })
       return
     }
@@ -106,7 +108,9 @@ export default function ResumeForm({
 
     onGenerate({
       github_username: githubUsername || null,
+      linkedin_url: linkedinUrl || null,
       additional_info: additionalInfo || null,
+      job_description: jobDescription || null,
       priority,
       custom_system_prompt: customSystemPrompt,
       resume_template:
@@ -127,6 +131,18 @@ export default function ResumeForm({
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
         />
         <p className="mt-1 text-xs text-gray-500">We'll fetch your README</p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">LinkedIn Profile URL</label>
+        <input
+          type="url"
+          value={linkedinUrl}
+          onChange={(e) => setLinkedinUrl(e.target.value)}
+          placeholder="https://linkedin.com/in/username"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+        />
+        <p className="mt-1 text-xs text-gray-500">We'll scrape your work history, education & skills</p>
       </div>
 
       <div>
@@ -251,6 +267,21 @@ export default function ResumeForm({
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm h-32 resize-none"
         />
       </div>
+
+      <details className="group">
+        <summary className="cursor-pointer text-sm font-medium text-gray-700 list-none flex items-center gap-2">
+          <span className="group-open:rotate-90 transition-transform inline-block">▶</span>
+          Target a specific job (optional)
+        </summary>
+        <div className="mt-2">
+          <textarea
+            value={jobDescription}
+            onChange={(e) => setJobDescription(e.target.value)}
+            placeholder="Paste job description here — AI will tailor the resume to match..."
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm h-28 resize-none"
+          />
+        </div>
+      </details>
 
       <button
         onClick={handleGenerate}

@@ -51,6 +51,8 @@ def build_user_prompt(
     additional_info: str,
     priority: str,
     resume_template: str = None,
+    linkedin_data: dict = None,
+    job_description: str = "",
 ) -> str:
     contact = extract_contact_info(additional_info + " " + readme_content)
 
@@ -83,6 +85,43 @@ AVAILABLE INFORMATION:
         else "(No GitHub profile content available)"
     )
 
+    if linkedin_data:
+        prompt += "\n\n--- LinkedIn Profile ---\n"
+        if linkedin_data.get("fullname"):
+            prompt += f"Name: {linkedin_data['fullname']}\n"
+        if linkedin_data.get("headline"):
+            prompt += f"Headline: {linkedin_data['headline']}\n"
+        if linkedin_data.get("location"):
+            prompt += f"Location: {linkedin_data['location']}\n"
+        if linkedin_data.get("email"):
+            prompt += f"Email: {linkedin_data['email']}\n"
+        if linkedin_data.get("about"):
+            prompt += f"Summary: {linkedin_data['about']}\n"
+        for exp in linkedin_data.get("experience", []):
+            title = exp.get("title", exp.get("position", ""))
+            company = exp.get("company", "")
+            start = exp.get("start_date", exp.get("startDate", ""))
+            end = exp.get("end_date", exp.get("endDate", "Present"))
+            prompt += f"- {title} at {company} ({start}–{end})\n"
+            if exp.get("description"):
+                prompt += f"  {exp['description']}\n"
+        for edu in linkedin_data.get("education", []):
+            degree = edu.get("degree_name", edu.get("degreeName", ""))
+            field = edu.get("field_of_study", edu.get("fieldOfStudy", ""))
+            school = edu.get("school", edu.get("schoolName", ""))
+            prompt += f"- {degree} {field} @ {school}\n"
+        for proj in linkedin_data.get("projects", []):
+            name = proj.get("name", "")
+            desc = proj.get("description", "")
+            if name:
+                prompt += f"Project: {name}"
+                if desc:
+                    prompt += f" — {desc}"
+                prompt += "\n"
+        langs = [l.get("language") for l in linkedin_data.get("languages", []) if l.get("language")]
+        if langs:
+            prompt += f"Languages: {', '.join(langs)}\n"
+
     prompt += "\n\n--- Additional User Information ---\n"
     prompt += (
         additional_info
@@ -95,6 +134,10 @@ AVAILABLE INFORMATION:
             "\n\n--- Resume Template Structure (use as reference for formatting) ---\n"
         )
         prompt += resume_template
+
+    if job_description and job_description.strip():
+        prompt += f"\n\n--- Target Job Description ---\n{job_description}\n"
+        prompt += "Match keywords naturally. Reorder to highlight relevant items. Never fabricate.\n"
 
     prompt += f"""
 
