@@ -55,9 +55,15 @@ async def fetch_linkedin_profile(profile_url: str) -> dict:
         if items_resp.status_code == 200:
             items = items_resp.json()
             print(f"Apify: got {len(items) if isinstance(items, list) else 0} items")
-            if isinstance(items, list) and items and items[0].get("success") is not False:
+            if (
+                isinstance(items, list)
+                and items
+                and items[0].get("success") is not False
+            ):
                 return items[0]
         else:
-            print(f"Apify dataset fetch failed: {items_resp.status_code} - {items_resp.text[:200]}")
+            print(
+                f"Apify dataset fetch failed: {items_resp.status_code} - {items_resp.text[:200]}"
+            )
 
     return {}

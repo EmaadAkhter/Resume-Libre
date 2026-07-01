@@ -75,7 +75,9 @@ class ResumePipeline:
         linkedin_data = {}
         if linkedin_url:
             linkedin_data = await fetch_linkedin_profile(linkedin_url)
-            await bus.publish(Events.README_FETCHED, {"linkedin": True, "fields": len(linkedin_data)})
+            await bus.publish(
+                Events.README_FETCHED, {"linkedin": True, "fields": len(linkedin_data)}
+            )
 
         # Stage 2: Build the prompt
         user_prompt = build_user_prompt(
@@ -129,7 +131,9 @@ class ResumePipeline:
         linkedin_data = {}
         if linkedin_url:
             linkedin_data = await fetch_linkedin_profile(linkedin_url)
-            await bus.publish(Events.README_FETCHED, {"linkedin": True, "fields": len(linkedin_data)})
+            await bus.publish(
+                Events.README_FETCHED, {"linkedin": True, "fields": len(linkedin_data)}
+            )
 
         # Stage 2: Build the prompt
         user_prompt = build_user_prompt(
