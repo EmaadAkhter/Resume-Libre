@@ -90,6 +90,10 @@ async def compile_latex_pdf(latex_content: str) -> bytes:
     blocking the event loop)."""
     tectonic_path = os.getenv("TECTONIC_PATH", "tectonic")
 
+    # Auto-detect: if content is markdown (no \documentclass), convert it
+    if r"\documentclass" not in latex_content:
+        latex_content = md_to_latex(latex_content)
+
     loop = asyncio.get_event_loop()
 
     def _run():
@@ -106,13 +110,10 @@ async def compile_latex_pdf(latex_content: str) -> bytes:
                 timeout=300,
             )
 
-            if result.returncode != 0:
-                raise RuntimeError(
-                    f"Tectonic compilation failed: {result.stderr[:500]}"
-                )
-
             if not pdf_path.exists():
-                raise RuntimeError("Tectonic did not produce a PDF file")
+                raise RuntimeError(
+                    f"Tectonic compilation failed: {result.stderr}"
+                )
 
             return pdf_path.read_bytes()
 

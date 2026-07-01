@@ -56,7 +56,7 @@ async def stream_resume_generation(
     priority: str = Query("experience"),
     custom_system_prompt: Optional[str] = Query(None),
     resume_template: Optional[str] = Query(None),
-    template_format: str = Query("md"),
+    template_format: str = Query("tex"),
 ):
     """Stream resume generation via Server-Sent Events (SSE).
 

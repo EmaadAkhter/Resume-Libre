@@ -54,7 +54,14 @@ async def generate_resume_content(
 
     if template_format == "tex":
         system_prompt += (
-            "\n\nIMPORTANT: Output the resume in LaTeX format, not Markdown."
+            "\n\nOUTPUT FORMAT — COMPLETE LaTeX DOCUMENT:\n"
+            "Output a complete, compilable LaTeX document. Must include:\n"
+            "1. \\documentclass[11pt,a4paper]{article}\n"
+            "2. \\usepackage lines: [utf8]{inputenc}, [margin=0.5in]{geometry}, {hyperref}, {enumitem}, {titlesec}\n"
+            "3. \\begin{document} and \\end{document}\n"
+            "4. Use \\section*{} headers, \\textbf{} bold, \\href{url}{text} for links\n"
+            "5. Bullet points via \\begin{itemize}[nosep,leftmargin=*] ... \\end{itemize}\n"
+            "NO markdown, NO code fences, NO explanatory text outside the document."
         )
     else:
         system_prompt += "\n\nOutput the resume in Markdown format."
@@ -114,7 +121,14 @@ async def generate_resume_stream(
 
     if template_format == "tex":
         system_prompt += (
-            "\n\nIMPORTANT: Output the resume in LaTeX format, not Markdown."
+            "\n\nOUTPUT FORMAT — COMPLETE LaTeX DOCUMENT:\n"
+            "Output a complete, compilable LaTeX document. Must include:\n"
+            "1. \\documentclass[11pt,a4paper]{article}\n"
+            "2. \\usepackage lines: [utf8]{inputenc}, [margin=0.5in]{geometry}, {hyperref}, {enumitem}, {titlesec}\n"
+            "3. \\begin{document} and \\end{document}\n"
+            "4. Use \\section*{} headers, \\textbf{} bold, \\href{url}{text} for links\n"
+            "5. Bullet points via \\begin{itemize}[nosep,leftmargin=*] ... \\end{itemize}\n"
+            "NO markdown, NO code fences, NO explanatory text outside the document."
         )
     else:
         system_prompt += "\n\nOutput the resume in Markdown format."

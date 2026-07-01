@@ -142,7 +142,7 @@ export default function FresherWizard({ onGenerate, loading }) {
       linkedin_url: data.linkedinUrl || null,
       additional_info: structuredText || null,
       job_description: jobDescription || null,
-      template_format: 'md',
+      template_format: 'tex',
     })
   }
 

@@ -115,7 +115,7 @@ export default function ResumeForm({
       custom_system_prompt: customSystemPrompt,
       resume_template:
         uploadedResumeText && useAsTemplate ? uploadedResumeText : selectedTemplate?.content,
-      template_format: selectedTemplate?.format || 'md',
+      template_format: 'tex',
     })
   }
 

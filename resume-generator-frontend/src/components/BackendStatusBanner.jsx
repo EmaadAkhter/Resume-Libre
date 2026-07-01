@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { AlertCircle } from 'lucide-react'
 import { eventBus } from '../lib/eventBus'
 import { EVENTS } from '../lib/eventTypes'
 
 export default function BackendStatusBanner() {
   const [status, setStatus] = useState('checking')
+  const failCount = useRef(0)
 
   useEffect(() => {
     const checkHealth = async () => {
@@ -14,15 +15,22 @@ export default function BackendStatusBanner() {
           signal: AbortSignal.timeout(5000),
         })
         if (response.ok) {
+          failCount.current = 0
           setStatus('connected')
           eventBus.emit(EVENTS.BACKEND_CONNECTED)
         } else {
-          setStatus('error')
-          eventBus.emit(EVENTS.BACKEND_DISCONNECTED)
+          failCount.current++
+          if (failCount.current >= 2) {
+            setStatus('error')
+            eventBus.emit(EVENTS.BACKEND_DISCONNECTED)
+          }
         }
       } catch {
-        setStatus('disconnected')
-        eventBus.emit(EVENTS.BACKEND_DISCONNECTED)
+        failCount.current++
+        if (failCount.current >= 2) {
+          setStatus('disconnected')
+          eventBus.emit(EVENTS.BACKEND_DISCONNECTED)
+        }
       }
     }
 
