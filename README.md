@@ -124,6 +124,62 @@ resume-libre/
 └── .env.example
 ```
 
+### Low-level architecture
+
+```mermaid
+flowchart TD
+    REQ["HTTP Request"] --> CORS["CORSMiddleware"]
+    CORS --> RRM["RequestResponseMiddleware\n(log req/res)"]
+    RRM --> ROUTER
+
+    subgraph ROUTER["Routers"]
+        R1["/generate-resume\n/generate-resume-stream"]
+        R2["/export-resume\n/extract-resume"]
+        R3["/resumes/**\n(CRUD + versioning)"]
+        R4["/templates/**"]
+        R5["/health\n/debug/events"]
+    end
+
+    R1 --> AUTH["auth.py\nverify JWT"]
+    R2 --> AUTH
+    R3 --> AUTH
+    R4 --> AUTH
+
+    AUTH --> PIPE
+
+    subgraph PIPE["ResumePipeline (pipeline.py)"]
+        direction LR
+        P1["readme_fetch"] --> P2["prompt_build"]
+        P2 --> P3["generation"]
+        P3 --> P4["validation"]
+    end
+
+    P1 --> GH["github.py\nhttpx → GitHub API"]
+    P1 --> LI["linkedin.py\nApify actor poll"]
+    P2 --> PR["prompt.py\nbuild + contact extract"]
+    P3 --> GEN["genrate_resume.py\nOpenRouter completions"]
+    P4 --> CL["clean_up.py\nATS checks + strip artifacts"]
+
+    GEN -->|"stream"| SSE["SSE response\n(LLM_TOKEN events)"]
+    CL -->|"batch"| JSON["JSON response"]
+
+    R2 --> EX["export_utils.py\nReportLab / python-docx"]
+    R2 --> LC["latex_compiler.py\nMarkdown→LaTeX→Tectonic"]
+
+    R3 --> RS["resume_store.py\nSupabase CRUD"]
+    R4 --> TS["template_store.py\nSupabase CRUD"]
+
+    subgraph EB["EventBus (events.py)"]
+        direction LR
+        PUB["publish(event, data)"] --> SUB1["EventLoggingSubscriber"]
+        PUB --> SUB2["SSE /debug/events"]
+    end
+
+    PIPE -.->|"publishes"| PUB
+    RS -.->|"publishes"| PUB
+    TS -.->|"publishes"| PUB
+```
+
 ### System architecture
 
 ```mermaid
