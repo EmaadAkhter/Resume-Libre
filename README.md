@@ -124,6 +124,35 @@ resume-libre/
 └── .env.example
 ```
 
+### System architecture
+
+```mermaid
+flowchart TB
+    subgraph Client["Browser"]
+        FE["React 19 + Vite\n(Tailwind, React Router)"]
+    end
+
+    subgraph VPS["Hostinger KVM2 — Docker Compose"]
+        Caddy["Caddy\n:443 SSL + reverse proxy"]
+        Nginx["nginx\nstatic files"]
+        API["FastAPI\n4 uvicorn workers"]
+        Caddy --> Nginx
+        Nginx -->|"/api/*"| API
+    end
+
+    subgraph External["External Services"]
+        SB["Supabase\nauth + PostgreSQL + RLS"]
+        OR["OpenRouter\nLLM API"]
+        AP["Apify\nLinkedIn scraper"]
+    end
+
+    FE <-->|"HTTPS"| Caddy
+    API <-->|"JWT / service key"| SB
+    FE <-->|"JWT"| SB
+    API -->|"completions"| OR
+    API -->|"actor runs"| AP
+```
+
 ### Data flow
 
 ```mermaid
