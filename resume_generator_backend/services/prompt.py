@@ -124,7 +124,7 @@ AVAILABLE INFORMATION:
                 if desc:
                     prompt += f" — {desc}"
                 prompt += "\n"
-        langs = [l.get("language") for l in linkedin_data.get("languages", []) if l.get("language")]
+        langs = [lang.get("language") for lang in linkedin_data.get("languages", []) if lang.get("language")]
         if langs:
             prompt += f"Languages: {', '.join(langs)}\n"
 
