@@ -124,7 +124,11 @@ AVAILABLE INFORMATION:
                 if desc:
                     prompt += f" — {desc}"
                 prompt += "\n"
-        langs = [lang.get("language") for lang in linkedin_data.get("languages", []) if lang.get("language")]
+        langs = [
+            lang.get("language")
+            for lang in linkedin_data.get("languages", [])
+            if lang.get("language")
+        ]
         if langs:
             prompt += f"Languages: {', '.join(langs)}\n"
 
@@ -153,14 +157,20 @@ FORMAT INSTRUCTIONS:
 1. Use this structure as reference:
 {TEMPLATE_STRUCTURE}
 
-2. {"IMPORTANT: If a resume template was provided above, follow its structure and formatting style closely while updating the content with the user's information." if resume_template else f'Section priority based on "{priority}":'}
+2. {
+        "IMPORTANT: If a resume template was provided above, follow its structure and formatting style closely while updating the content with the user's information."
+        if resume_template
+        else f'Section priority based on "{priority}":'
+    }
 
 3. Section priority based on "{priority}":
    {
-"Experience → Projects → Skills → Education" if priority == "experience"
-else "Projects → Experience → Skills → Education" if priority == "projects"
-else "Experience → Projects → Skills → Education (equal weight — balance bullets 50/50 between experience and projects)"
-}
+        "Experience → Projects → Skills → Education"
+        if priority == "experience"
+        else "Projects → Experience → Skills → Education"
+        if priority == "projects"
+        else "Experience → Projects → Skills → Education (equal weight — balance bullets 50/50 between experience and projects)"
+    }
 
 4. Contact line format (use | separator):
    email | phone | location | LinkedIn: username | GitHub: username

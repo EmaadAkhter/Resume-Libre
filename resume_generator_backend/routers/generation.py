@@ -18,7 +18,11 @@ router = APIRouter(tags=["generation"])
 
 @router.post("/generate-resume", response_model=ResumeResponse)
 async def create_resume(request: ResumeRequest):
-    if not request.github_username and not request.additional_info and not request.linkedin_url:
+    if (
+        not request.github_username
+        and not request.additional_info
+        and not request.linkedin_url
+    ):
         raise HTTPException(
             status_code=400,
             detail="Please provide either a GitHub username, LinkedIn URL, or additional information",
@@ -65,7 +69,8 @@ async def stream_resume_generation(
     """
     if not github_username and not additional_info and not linkedin_url:
         raise HTTPException(
-            status_code=400, detail="Provide github_username, linkedin_url, or additional_info"
+            status_code=400,
+            detail="Provide github_username, linkedin_url, or additional_info",
         )
 
     async def event_stream():
