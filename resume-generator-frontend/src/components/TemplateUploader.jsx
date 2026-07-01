@@ -9,7 +9,7 @@ export default function TemplateUploader({ user, onUpload }) {
   const [description, setDescription] = useState('')
   const [content, setContent] = useState('')
   const [format, setFormat] = useState('md')
-  const [isPublic, setIsPublic] = useState(true)
+  const [isPublic, setIsPublic] = useState(false)
   const [uploading, setUploading] = useState(false)
 
   const handleFileRead = (e) => {
@@ -138,15 +138,17 @@ export default function TemplateUploader({ user, onUpload }) {
                 />
               </div>
 
-              <label className="flex items-center text-sm text-gray-600">
-                <input
-                  type="checkbox"
-                  checked={isPublic}
-                  onChange={(e) => setIsPublic(e.target.checked)}
-                  className="mr-2"
-                />
-                Make this template public (visible to all users)
-              </label>
+              {user?.role === 'admin' && (
+                <label className="flex items-center text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={isPublic}
+                    onChange={(e) => setIsPublic(e.target.checked)}
+                    className="mr-2"
+                  />
+                  Make this template public (visible to all users)
+                </label>
+              )}
             </div>
 
             <div className="p-4 border-t border-gray-200 flex gap-2 justify-end">
