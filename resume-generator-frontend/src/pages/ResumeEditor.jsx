@@ -120,10 +120,27 @@ export default function ResumeEditor({ user }) {
         (token, full) => {
           setResumeContent(full)
         },
-        (full) => {
-          setResumeContent(full)
+        async (full) => {
           setCurrentView('preview')
-          compilePdf(full)
+          // If AI output markdown despite tex request, convert to LaTeX first
+          if (!full.includes('\\documentclass')) {
+            try {
+              const resp = await fetch(`${apiUrl}/export-resume`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ markdown_content: full, format: 'latex' }),
+              })
+              const latex = await resp.text()
+              setResumeContent(latex)
+              compilePdf(latex)
+            } catch {
+              setResumeContent(full)
+              compilePdf(full)
+            }
+          } else {
+            setResumeContent(full)
+            compilePdf(full)
+          }
         },
         (err) => {
           eventBus.emit(EVENTS.NOTIFICATION_SHOW, { type: 'error', message: err })
@@ -330,7 +347,7 @@ export default function ResumeEditor({ user }) {
               Compiling PDF...
             </div>
           ) : pdfUrl ? (
-            <iframe src={pdfUrl} className="w-full h-full border-0" title="Resume PDF Preview" />
+            <iframe src={`${pdfUrl}#navpanes=0&toolbar=0`} className="w-full h-full border-0" title="Resume PDF Preview" />
           ) : (
             <div className="flex items-center justify-center h-full text-gray-400 text-sm">
               Click Preview to compile

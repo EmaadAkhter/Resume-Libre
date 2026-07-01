@@ -59,9 +59,15 @@ def build_user_prompt(
     if github_username:
         contact["github"] = github_username
 
-    prompt = f"""Format this information into a one-page, ATS-friendly resume in markdown.
+    priority_label = {
+        "experience": "Experience First — lead with work history",
+        "projects": "Projects First — lead with projects",
+        "balanced": "Balanced — equal weight between experience and projects",
+    }.get(priority, priority.title())
 
-PRIORITY: {priority.title()} first
+    prompt = f"""Format this information into a one-page, ATS-friendly resume in LaTeX.
+
+PRIORITY: {priority_label}
 
 AVAILABLE INFORMATION:
 """
@@ -150,7 +156,11 @@ FORMAT INSTRUCTIONS:
 2. {"IMPORTANT: If a resume template was provided above, follow its structure and formatting style closely while updating the content with the user's information." if resume_template else f'Section priority based on "{priority}":'}
 
 3. Section priority based on "{priority}":
-   {"Experience → Projects → Skills → Education" if priority == "experience" else "Projects → Experience → Skills → Education"}
+   {
+"Experience → Projects → Skills → Education" if priority == "experience"
+else "Projects → Experience → Skills → Education" if priority == "projects"
+else "Experience → Projects → Skills → Education (equal weight — balance bullets 50/50 between experience and projects)"
+}
 
 4. Contact line format (use | separator):
    email | phone | location | LinkedIn: username | GitHub: username

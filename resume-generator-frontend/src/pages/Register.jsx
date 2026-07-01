@@ -51,8 +51,8 @@ export default function Register({ register }) {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-lg shadow-md p-8">
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Resume-Libre</h1>
-            <p className="text-sm text-gray-600 mt-1">Create your account</p>
+            <img src="/logo.png" alt="ResumeLibre" className="w-full h-auto mx-auto mb-3" style={{ viewTransitionName: 'site-logo' }} />
+            <p className="text-sm text-gray-600">Create your account</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

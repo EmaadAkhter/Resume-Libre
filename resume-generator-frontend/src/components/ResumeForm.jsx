@@ -253,6 +253,25 @@ export default function ResumeForm({
               </div>
             </div>
           </div>
+          <div
+            onClick={() => setPriority('balanced')}
+            className={`border-2 rounded-lg p-3 cursor-pointer transition ${
+              priority === 'balanced' ? 'border-blue-600 bg-blue-50' : 'border-gray-200'
+            }`}
+          >
+            <div className="flex items-start gap-2">
+              <input
+                type="radio"
+                checked={priority === 'balanced'}
+                onChange={() => setPriority('balanced')}
+                className="mt-1"
+              />
+              <div>
+                <div className="font-semibold text-gray-900 text-sm">Balanced</div>
+                <div className="text-xs text-gray-600">Equal weight — experience & projects</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
