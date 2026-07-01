@@ -8,7 +8,9 @@ export function useGenerationStream() {
     const queryParams = new URLSearchParams()
 
     if (params.github_username) queryParams.set('github_username', params.github_username)
+    if (params.linkedin_url) queryParams.set('linkedin_url', params.linkedin_url)
     if (params.additional_info) queryParams.set('additional_info', params.additional_info)
+    if (params.job_description) queryParams.set('job_description', params.job_description)
     if (params.priority) queryParams.set('priority', params.priority)
     if (params.custom_system_prompt) queryParams.set('custom_system_prompt', params.custom_system_prompt)
     if (params.resume_template) queryParams.set('resume_template', params.resume_template)

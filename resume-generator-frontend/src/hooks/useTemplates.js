@@ -32,8 +32,9 @@ export function useTemplates(user) {
   }, [])
 
   const uploadTemplate = useCallback(
-    async (name, content, format, description = '', isPublic = true) => {
+    async (name, content, format, description = '', isPublic = false) => {
       if (!user) return
+      const isAdmin = user?.role === 'admin'
       const { data, error } = await supabase
         .from('templates')
         .insert({
@@ -41,7 +42,7 @@ export function useTemplates(user) {
           content,
           format,
           description,
-          is_public: isPublic,
+          is_public: isAdmin ? isPublic : false,
           is_admin_only: false,
           created_by: user.id,
         })

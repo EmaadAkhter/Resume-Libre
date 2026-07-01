@@ -4,8 +4,10 @@ from typing import Optional, Literal
 
 class ResumeRequest(BaseModel):
     github_username: Optional[str] = None
+    linkedin_url: Optional[str] = None
     additional_info: Optional[str] = None
-    priority: Literal["experience", "projects"] = "experience"
+    job_description: Optional[str] = None
+    priority: Literal["experience", "projects", "balanced"] = "experience"
     custom_system_prompt: Optional[str] = None
     resume_template: Optional[str] = None
     template_format: Literal["md", "tex"] = "md"

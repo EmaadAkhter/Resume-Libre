@@ -54,7 +54,14 @@ async def generate_resume_content(
 
     if template_format == "tex":
         system_prompt += (
-            "\n\nIMPORTANT: Output the resume in LaTeX format, not Markdown."
+            "\n\nOUTPUT FORMAT — COMPLETE LaTeX DOCUMENT:\n"
+            "Output a complete, compilable LaTeX document. Must include:\n"
+            "1. \\documentclass[11pt,a4paper]{article}\n"
+            "2. \\usepackage lines: [utf8]{inputenc}, [margin=0.5in]{geometry}, {hyperref}, {enumitem}, {titlesec}\n"
+            "3. \\begin{document} and \\end{document}\n"
+            "4. Use \\section*{} headers, \\textbf{} bold, \\href{url}{text} for links\n"
+            "5. Bullet points via \\begin{itemize}[nosep,leftmargin=*] ... \\end{itemize}\n"
+            "NO markdown, NO code fences, NO explanatory text outside the document."
         )
     else:
         system_prompt += "\n\nOutput the resume in Markdown format."
@@ -83,23 +90,20 @@ async def generate_resume_content(
             status_code=500, detail="Generated resume is too short or empty"
         )
 
-    resume = validate_and_fix_format(resume)
-
-    validation = validate_resume_quality(resume)
-
-    if validation["warnings"]:
-        print("Resume warnings:", validation["warnings"])
-
-    if not validation["valid"]:
-        error_msg = "Generated resume has critical issues: " + "; ".join(
-            validation["issues"]
-        )
-        print(error_msg)
-        raise HTTPException(status_code=500, detail=error_msg)
-
-    words = len(resume.split())
-    lines = validation["line_count"]
-    print(f"Generated resume: {words} words, {lines} content lines")
+    if template_format != "tex":
+        resume = validate_and_fix_format(resume)
+        validation = validate_resume_quality(resume)
+        if validation["warnings"]:
+            print("Resume warnings:", validation["warnings"])
+        if not validation["valid"]:
+            error_msg = "Generated resume has critical issues: " + "; ".join(
+                validation["issues"]
+            )
+            print(error_msg)
+            raise HTTPException(status_code=500, detail=error_msg)
+        words = len(resume.split())
+        lines = validation["line_count"]
+        print(f"Generated resume: {words} words, {lines} content lines")
 
     return resume.strip()
 
@@ -117,7 +121,14 @@ async def generate_resume_stream(
 
     if template_format == "tex":
         system_prompt += (
-            "\n\nIMPORTANT: Output the resume in LaTeX format, not Markdown."
+            "\n\nOUTPUT FORMAT — COMPLETE LaTeX DOCUMENT:\n"
+            "Output a complete, compilable LaTeX document. Must include:\n"
+            "1. \\documentclass[11pt,a4paper]{article}\n"
+            "2. \\usepackage lines: [utf8]{inputenc}, [margin=0.5in]{geometry}, {hyperref}, {enumitem}, {titlesec}\n"
+            "3. \\begin{document} and \\end{document}\n"
+            "4. Use \\section*{} headers, \\textbf{} bold, \\href{url}{text} for links\n"
+            "5. Bullet points via \\begin{itemize}[nosep,leftmargin=*] ... \\end{itemize}\n"
+            "NO markdown, NO code fences, NO explanatory text outside the document."
         )
     else:
         system_prompt += "\n\nOutput the resume in Markdown format."

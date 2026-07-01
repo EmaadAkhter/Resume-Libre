@@ -8,7 +8,6 @@ import { useGenerationStream } from '../hooks/useGenerationStream'
 import { useTemplates } from '../hooks/useTemplates'
 import ResumeForm from '../components/ResumeForm'
 import MarkdownEditor from '../components/MarkdownEditor'
-import MarkdownPreview from '../components/MarkdownPreview'
 import ExportMenu from '../components/ExportMenu'
 import SystemPromptModal from '../components/SystemPromptModal'
 import VersionHistory from '../components/VersionHistory'
@@ -23,6 +22,8 @@ export default function ResumeEditor({ user }) {
 
   const [resume, setResume] = useState(null)
   const [resumeContent, setResumeContent] = useState('')
+  const [pdfUrl, setPdfUrl] = useState(null)
+  const [compilingPdf, setCompilingPdf] = useState(false)
   const [currentView, setCurrentView] = useState('edit')
   const [loading, setLoading] = useState(false)
   const [backendConnected, setBackendConnected] = useState(true)
@@ -33,6 +34,30 @@ export default function ResumeEditor({ user }) {
   const [diff, setDiff] = useState(null)
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
+  const compilePdf = async (latexSource) => {
+    const src = latexSource || resumeContent
+    if (!src) return
+    setCompilingPdf(true)
+    try {
+      const resp = await fetch(`${apiUrl}/export-resume`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ markdown_content: src, latex_content: src, format: 'latex_pdf' }),
+      })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        throw new Error(err.detail || 'Compilation failed')
+      }
+      const blob = await resp.blob()
+      if (pdfUrl) URL.revokeObjectURL(pdfUrl)
+      setPdfUrl(URL.createObjectURL(blob))
+    } catch (err) {
+      eventBus.emit(EVENTS.NOTIFICATION_SHOW, { type: 'error', message: err.message })
+    } finally {
+      setCompilingPdf(false)
+    }
+  }
 
   useEffect(() => {
     const onConnected = () => setBackendConnected(true)
@@ -74,7 +99,7 @@ export default function ResumeEditor({ user }) {
           .single()
 
         if (version) {
-          setResumeContent(version.content)
+          setResumeContent(version.latex_content || version.content)
         }
       }
     }
@@ -87,6 +112,7 @@ export default function ResumeEditor({ user }) {
   const handleGenerate = async (params) => {
     setLoading(true)
     setResumeContent('')
+    setPdfUrl(null)
 
     try {
       const content = await streamGeneration(
@@ -94,9 +120,27 @@ export default function ResumeEditor({ user }) {
         (token, full) => {
           setResumeContent(full)
         },
-        (full) => {
-          setResumeContent(full)
+        async (full) => {
           setCurrentView('preview')
+          // If AI output markdown despite tex request, convert to LaTeX first
+          if (!full.includes('\\documentclass')) {
+            try {
+              const resp = await fetch(`${apiUrl}/export-resume`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ markdown_content: full, format: 'latex' }),
+              })
+              const latex = await resp.text()
+              setResumeContent(latex)
+              compilePdf(latex)
+            } catch {
+              setResumeContent(full)
+              compilePdf(full)
+            }
+          } else {
+            setResumeContent(full)
+            compilePdf(full)
+          }
         },
         (err) => {
           eventBus.emit(EVENTS.NOTIFICATION_SHOW, { type: 'error', message: err })
@@ -130,7 +174,8 @@ export default function ResumeEditor({ user }) {
         parent_version_id: branch?.head_version_id,
         branch_name: currentBranch,
         message: params ? 'AI generated' : 'Manual edit',
-        content,
+        content: '',
+        latex_content: content,
         generation_prompt: JSON.stringify(params || {}),
         template_id: selectedTemplate?.id,
       })
@@ -233,7 +278,10 @@ export default function ResumeEditor({ user }) {
                 Edit
               </button>
               <button
-                onClick={() => setCurrentView('preview')}
+                onClick={() => {
+                  setCurrentView('preview')
+                  compilePdf()
+                }}
                 className={`px-3 py-1.5 text-sm font-medium flex items-center gap-1 ${
                   currentView === 'preview' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
                 }`}
@@ -260,6 +308,7 @@ export default function ResumeEditor({ user }) {
 
             <ExportMenu
               resumeContent={resumeContent}
+              latexContent={resumeContent}
               backendConnected={backendConnected}
             />
 
@@ -293,8 +342,16 @@ export default function ResumeEditor({ user }) {
         <div className="flex-1 bg-white border border-gray-200 rounded-lg overflow-hidden">
           {currentView === 'edit' ? (
             <MarkdownEditor content={resumeContent} onChange={setResumeContent} />
+          ) : compilingPdf ? (
+            <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+              Compiling PDF...
+            </div>
+          ) : pdfUrl ? (
+            <iframe src={`${pdfUrl}#navpanes=0&toolbar=0`} className="w-full h-full border-0" title="Resume PDF Preview" />
           ) : (
-            <MarkdownPreview content={resumeContent} />
+            <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+              Click Preview to compile
+            </div>
           )}
         </div>
 

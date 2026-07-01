@@ -19,7 +19,11 @@ export default function Login({ login }) {
         type: 'success',
         message: 'Welcome back!',
       })
-      navigate('/dashboard')
+      if (document.startViewTransition) {
+        document.startViewTransition(() => navigate('/dashboard'))
+      } else {
+        navigate('/dashboard')
+      }
     } catch (err) {
       eventBus.emit(EVENTS.NOTIFICATION_SHOW, {
         type: 'error',
@@ -35,8 +39,8 @@ export default function Login({ login }) {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-lg shadow-md p-8">
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Resume-Libre</h1>
-            <p className="text-sm text-gray-600 mt-1">Sign in to your account</p>
+            <img src="/logo.png" alt="ResumeLibre" className="w-full h-auto mx-auto mb-3" style={{ viewTransitionName: 'site-logo' }} />
+            <p className="text-sm text-gray-600">Sign in to your account</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

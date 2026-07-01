@@ -39,6 +39,8 @@ async def create_template(req: CreateTemplateRequest, user: dict = Depends(verif
             status_code=403, detail="Only admins can create admin-only templates"
         )
 
+    is_public = req.is_public if is_admin else False
+
     template = template_store.create_template(
         user["id"],
         req.name,
@@ -46,7 +48,7 @@ async def create_template(req: CreateTemplateRequest, user: dict = Depends(verif
         req.format,
         req.description,
         req.is_admin_only,
-        req.is_public,
+        is_public,
     )
     await bus.publish(
         Events.TEMPLATE_UPLOADED, {"template_id": template["id"], "name": req.name}

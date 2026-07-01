@@ -3,7 +3,7 @@ import re
 
 def clean_markdown_output(resume: str) -> str:
 
-    resume = re.sub(r"```(?:markdown|md)?", "", resume)
+    resume = re.sub(r"```(?:markdown|md|latex|tex)?", "", resume)
 
     resume = re.sub(r"(?<!\[):(\w+):(?!\()", "", resume)
 
