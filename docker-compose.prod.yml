@@ -1,10 +1,27 @@
 services:
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+    restart: unless-stopped
+
   backend:
     build: ./resume_generator_backend
-    ports:
-      - "8000:8000"
     env_file:
       - .env
+    depends_on:
+      latex-service:
+        condition: service_healthy
+      redis:
+        condition: service_started
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
@@ -13,10 +30,40 @@ services:
       retries: 3
 
   frontend:
-    build: ./resume-generator-frontend
-    ports:
-      - "80:80"
+    build:
+      context: ./resume-generator-frontend
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+        VITE_API_URL: /api
     depends_on:
       backend:
         condition: service_healthy
     restart: unless-stopped
+
+  latex-service:
+    build: ./latex-service
+    volumes:
+      - tectonic-cache:/root/.cache/Tectonic
+    deploy:
+      resources:
+        limits:
+          memory: 600m
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+volumes:
+  caddy_data:
+  caddy_config:
+  tectonic-cache:
+  redis_data:

@@ -7,8 +7,12 @@ services:
       - .env
     volumes:
       - ./resume_generator_backend:/app
-      - tectonic-cache:/root/.cache/Tectonic
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      latex-service:
+        condition: service_healthy
+      redis:
+        condition: service_started
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
@@ -22,12 +26,30 @@ services:
       - "3000:3000"
     volumes:
       - ./resume-generator-frontend:/app
+      - ./.env:/.env
       - frontend-node-modules:/app/node_modules
     command: sh -c "npm install && npx vite --host"
     depends_on:
       backend:
         condition: service_healthy
 
+  latex-service:
+    build: ./latex-service
+    volumes:
+      - tectonic-cache:/root/.cache/Tectonic
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
 volumes:
   tectonic-cache:
   frontend-node-modules:
+  redis_data:

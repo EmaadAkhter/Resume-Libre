@@ -1,6 +1,10 @@
 # Web Framework
 fastapi
 uvicorn[standard]
+slowapi
+
+# Cache
+redis[asyncio]
 
 # Environment Variables
 python-dotenv

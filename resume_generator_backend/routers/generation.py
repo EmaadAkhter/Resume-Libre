@@ -1,13 +1,14 @@
 import io
 import json
 
-from fastapi import APIRouter, HTTPException, UploadFile, File, Query
+from fastapi import APIRouter, HTTPException, Request, UploadFile, File, Query
 from fastapi.responses import StreamingResponse
 from typing import Optional
 
 import pypdf
 import docx
 
+from core.limiter import limiter
 from schemas.resume import ResumeRequest, ResumeResponse
 from services.pipeline import pipeline
 from core.event_types import Events
@@ -17,12 +18,9 @@ router = APIRouter(tags=["generation"])
 
 
 @router.post("/generate-resume", response_model=ResumeResponse)
-async def create_resume(request: ResumeRequest):
-    if (
-        not request.github_username
-        and not request.additional_info
-        and not request.linkedin_url
-    ):
+@limiter.limit("10/hour")
+async def create_resume(request: Request, body: ResumeRequest):
+    if not body.github_username and not body.additional_info and not body.linkedin_url:
         raise HTTPException(
             status_code=400,
             detail="Please provide either a GitHub username, LinkedIn URL, or additional information",
@@ -30,14 +28,14 @@ async def create_resume(request: ResumeRequest):
 
     try:
         resume = await pipeline.run(
-            github_username=request.github_username or "",
-            linkedin_url=request.linkedin_url or "",
-            additional_info=request.additional_info or "",
-            job_description=request.job_description or "",
-            priority=request.priority,
-            custom_system_prompt=request.custom_system_prompt,
-            resume_template=request.resume_template,
-            template_format=request.template_format,
+            github_username=body.github_username or "",
+            linkedin_url=body.linkedin_url or "",
+            additional_info=body.additional_info or "",
+            job_description=body.job_description or "",
+            priority=body.priority,
+            custom_system_prompt=body.custom_system_prompt,
+            resume_template=body.resume_template,
+            template_format=body.template_format,
         )
         await bus.publish(Events.LLM_COMPLETED, {"length": len(resume)})
         return ResumeResponse(resume=resume, status="success")
@@ -52,7 +50,9 @@ async def create_resume(request: ResumeRequest):
 
 
 @router.get("/generate-resume-stream")
+@limiter.limit("10/hour")
 async def stream_resume_generation(
+    request: Request,
     github_username: Optional[str] = Query(None),
     linkedin_url: Optional[str] = Query(None),
     additional_info: Optional[str] = Query(None),
