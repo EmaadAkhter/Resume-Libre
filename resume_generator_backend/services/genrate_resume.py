@@ -1,9 +1,8 @@
 import os
+import re
 from typing import Optional
 from openai import OpenAI
 from fastapi import HTTPException
-
-from .clean_up import validate_and_fix_format, validate_resume_quality
 
 
 def load_system_prompt() -> str:
@@ -51,20 +50,12 @@ async def generate_resume_content(
         template_format: 'md' or 'tex' — determines output format instruction.
     """
     system_prompt = custom_system_prompt if custom_system_prompt else SYSTEM_PROMPT
-
-    if template_format == "tex":
-        system_prompt += (
-            "\n\nOUTPUT FORMAT — COMPLETE LaTeX DOCUMENT:\n"
-            "Output a complete, compilable LaTeX document. Must include:\n"
-            "1. \\documentclass[11pt,a4paper]{article}\n"
-            "2. \\usepackage lines: [utf8]{inputenc}, [margin=0.5in]{geometry}, {hyperref}, {enumitem}, {titlesec}\n"
-            "3. \\begin{document} and \\end{document}\n"
-            "4. Use \\section*{} headers, \\textbf{} bold, \\href{url}{text} for links\n"
-            "5. Bullet points via \\begin{itemize}[nosep,leftmargin=*] ... \\end{itemize}\n"
-            "NO markdown, NO code fences, NO explanatory text outside the document."
-        )
-    else:
-        system_prompt += "\n\nOutput the resume in Markdown format."
+    system_prompt += (
+        "\n\nOUTPUT FORMAT — COMPLETE LaTeX DOCUMENT:\n"
+        "Output a complete, compilable LaTeX document starting with \\documentclass.\n"
+        "NO markdown, NO code fences, NO explanatory text outside the document.\n"
+        "The document body between \\begin{document} and \\end{document} MUST contain the full resume content."
+    )
 
     client = _get_client()
     model = _get_model()
@@ -83,29 +74,28 @@ async def generate_resume_content(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
 
-    resume = completion.choices[0].message.content
+    resume = completion.choices[0].message.content or ""
 
-    if not resume or len(resume.strip()) < 100:
+    # Strip code fences if LLM wrapped output
+    resume = re.sub(r"^```[a-z]*\n?", "", resume.strip()).rstrip("`").strip()
+
+    if len(resume) < 100:
         raise HTTPException(
             status_code=500, detail="Generated resume is too short or empty"
         )
 
-    if template_format != "tex":
-        resume = validate_and_fix_format(resume)
-        validation = validate_resume_quality(resume)
-        if validation["warnings"]:
-            print("Resume warnings:", validation["warnings"])
-        if not validation["valid"]:
-            error_msg = "Generated resume has critical issues: " + "; ".join(
-                validation["issues"]
-            )
-            print(error_msg)
-            raise HTTPException(status_code=500, detail=error_msg)
-        words = len(resume.split())
-        lines = validation["line_count"]
-        print(f"Generated resume: {words} words, {lines} content lines")
+    # Validate LaTeX body is non-empty
+    body_match = re.search(
+        r"\\begin\{document\}(.*?)\\end\{document\}", resume, re.DOTALL
+    )
+    body = body_match.group(1).strip() if body_match else ""
+    if len(body) < 50:
+        raise HTTPException(
+            status_code=500,
+            detail="Generated LaTeX document body is empty — model failed to fill content",
+        )
 
-    return resume.strip()
+    return resume
 
 
 async def generate_resume_stream(
@@ -118,20 +108,12 @@ async def generate_resume_stream(
     Yields individual token strings as they arrive.
     """
     system_prompt = custom_system_prompt if custom_system_prompt else SYSTEM_PROMPT
-
-    if template_format == "tex":
-        system_prompt += (
-            "\n\nOUTPUT FORMAT — COMPLETE LaTeX DOCUMENT:\n"
-            "Output a complete, compilable LaTeX document. Must include:\n"
-            "1. \\documentclass[11pt,a4paper]{article}\n"
-            "2. \\usepackage lines: [utf8]{inputenc}, [margin=0.5in]{geometry}, {hyperref}, {enumitem}, {titlesec}\n"
-            "3. \\begin{document} and \\end{document}\n"
-            "4. Use \\section*{} headers, \\textbf{} bold, \\href{url}{text} for links\n"
-            "5. Bullet points via \\begin{itemize}[nosep,leftmargin=*] ... \\end{itemize}\n"
-            "NO markdown, NO code fences, NO explanatory text outside the document."
-        )
-    else:
-        system_prompt += "\n\nOutput the resume in Markdown format."
+    system_prompt += (
+        "\n\nOUTPUT FORMAT — COMPLETE LaTeX DOCUMENT:\n"
+        "Output a complete, compilable LaTeX document starting with \\documentclass.\n"
+        "NO markdown, NO code fences, NO explanatory text outside the document.\n"
+        "The document body between \\begin{document} and \\end{document} MUST contain the full resume content."
+    )
 
     client = _get_client()
     model = _get_model()
@@ -159,7 +141,21 @@ async def generate_resume_stream(
             full_content += token
             yield token
 
-    if len(full_content.strip()) < 100:
+    full_content = (
+        re.sub(r"^```[a-z]*\n?", "", full_content.strip()).rstrip("`").strip()
+    )
+
+    if len(full_content) < 100:
         raise HTTPException(
             status_code=500, detail="Generated resume is too short or empty"
+        )
+
+    body_match = re.search(
+        r"\\begin\{document\}(.*?)\\end\{document\}", full_content, re.DOTALL
+    )
+    body = body_match.group(1).strip() if body_match else ""
+    if len(body) < 50:
+        raise HTTPException(
+            status_code=500,
+            detail="Generated LaTeX document body is empty — model failed to fill content",
         )

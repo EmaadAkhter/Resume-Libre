@@ -65,7 +65,7 @@ def build_user_prompt(
         "balanced": "Balanced — equal weight between experience and projects",
     }.get(priority, priority.title())
 
-    prompt = f"""Format this information into a one-page, ATS-friendly resume in LaTeX.
+    prompt = f"""Format this information into a one-page, ATS-friendly resume.
 
 PRIORITY: {priority_label}
 
@@ -141,7 +141,9 @@ AVAILABLE INFORMATION:
 
     if resume_template:
         prompt += (
-            "\n\n--- Resume Template Structure (use as reference for formatting) ---\n"
+            "\n\n--- Resume Template Structure ---\n"
+            "Use this EXACT structure but replace ALL {{PLACEHOLDER}} fields with the user's real data. "
+            "Do NOT output unfilled placeholders. Do NOT copy the template verbatim.\n"
         )
         prompt += resume_template
 
@@ -149,46 +151,39 @@ AVAILABLE INFORMATION:
         prompt += f"\n\n--- Target Job Description ---\n{job_description}\n"
         prompt += "Match keywords naturally. Reorder to highlight relevant items. Never fabricate.\n"
 
+    section_order = (
+        "Contact → Summary → Experience → Projects → Skills → Education"
+        if priority == "experience"
+        else "Contact → Summary → Projects → Experience → Skills → Education"
+        if priority == "projects"
+        else "Contact → Summary → Experience → Projects → Skills → Education (equal bullets 50/50 between experience and projects)"
+    )
+
+    template_instruction = (
+        "Use the resume_template structure above — replace ALL placeholder content with real user data. Do NOT leave any placeholder unfilled."
+        if resume_template
+        else "Use standard LaTeX resume structure with \\documentclass[11pt,a4paper]{article}."
+    )
+
     prompt += f"""
 
 --- End of Information ---
 
 FORMAT INSTRUCTIONS:
-1. Use this structure as reference:
-{TEMPLATE_STRUCTURE}
+1. Output a COMPLETE, compilable LaTeX document — no code fences, no markdown anywhere.
+2. {template_instruction}
+3. Section order: {section_order}
+4. Contact header (centered):
+   {{\\LARGE \\textbf{{Full Name}}}}\\\\[3pt]
+   \\href{{mailto:email}}{{email}} | phone | city | \\href{{linkedin_url}}{{LinkedIn}} | \\href{{github_url}}{{GitHub}}
+   (Only include fields that exist in the data above)
+5. Escape all special chars: \\& \\% \\_ \\# \\$ \\{{ \\}}
+6. Dates: use \\hfill on same line as employer/title
+7. Bullets: \\begin{{itemize}}[nosep,leftmargin=*,topsep=1pt] ... \\end{{itemize}}
+8. Omit any field or section for which no data was provided — never write N/A or placeholders
+9. Every section MUST contain real content — \\begin{{document}} must NOT be empty
+10. Target exactly 1 page — cut bullets if needed
 
-2. {
-        "IMPORTANT: If a resume template was provided above, follow its structure and formatting style closely while updating the content with the user's information."
-        if resume_template
-        else f'Section priority based on "{priority}":'
-    }
-
-3. Section priority based on "{priority}":
-   {
-        "Experience → Projects → Skills → Education"
-        if priority == "experience"
-        else "Projects → Experience → Skills → Education"
-        if priority == "projects"
-        else "Experience → Projects → Skills → Education (equal weight — balance bullets 50/50 between experience and projects)"
-    }
-
-4. Contact line format (use | separator):
-   email | phone | location | LinkedIn: username | GitHub: username
-   (If any field is missing, omit it entirely)
-
-5. Use ONLY these markdown elements:
-   - # for name (only at top)
-   - ## for section headers
-   - **bold** for job titles, companies, project names
-   - - for bullet points
-   - | for inline separators
-
-6. NO HTML, NO icons, NO special formatting
-
-7. Maximum 35 lines of content - be selective
-
-8. Copy exact details from the information above - no generic filler
-
-Generate the resume now:"""
+Generate the complete LaTeX resume now:"""
 
     return prompt

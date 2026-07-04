@@ -1,13 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
+from core.limiter import limiter
 from services.events import bus
 from core.logging import EventLoggingSubscriber, RequestResponseMiddleware
 
 
 def create_app() -> FastAPI:
-    """Application factory — creates and configures the FastAPI app."""
     app = FastAPI(title="Resume-Libre API", version="2.1.0")
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
     # ─── CORS ────────────────────────────────────────────
     app.add_middleware(

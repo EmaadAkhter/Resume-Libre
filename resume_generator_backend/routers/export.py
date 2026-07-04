@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import Response, StreamingResponse
 
+from core.limiter import limiter
 from schemas.export import ExportRequest
 from services.export_utils import (
     markdown_to_pdf,
@@ -15,12 +16,13 @@ router = APIRouter(tags=["export"])
 
 
 @router.post("/export-resume")
-async def export_resume(request: ExportRequest):
+@limiter.limit("20/hour")
+async def export_resume(request: Request, body: ExportRequest):
     try:
-        filename_base = get_filename_base(request.markdown_content)
+        filename_base = get_filename_base(body.markdown_content)
 
-        if request.format == "pdf":
-            pdf_bytes = markdown_to_pdf(request.markdown_content)
+        if body.format == "pdf":
+            pdf_bytes = markdown_to_pdf(body.markdown_content)
             return Response(
                 content=pdf_bytes,
                 media_type="application/pdf",
@@ -29,11 +31,11 @@ async def export_resume(request: ExportRequest):
                 },
             )
 
-        elif request.format == "latex_pdf":
-            if request.latex_content:
-                pdf_bytes = await latex_to_pdf(request.latex_content)
+        elif body.format == "latex_pdf":
+            if body.latex_content:
+                pdf_bytes = await latex_to_pdf(body.latex_content)
             else:
-                pdf_bytes = await markdown_to_latex_pdf(request.markdown_content)
+                pdf_bytes = await markdown_to_latex_pdf(body.markdown_content)
             return Response(
                 content=pdf_bytes,
                 media_type="application/pdf",
@@ -42,8 +44,8 @@ async def export_resume(request: ExportRequest):
                 },
             )
 
-        elif request.format == "latex":
-            latex = request.latex_content or md_to_latex(request.markdown_content)
+        elif body.format == "latex":
+            latex = body.latex_content or md_to_latex(body.markdown_content)
             return Response(
                 content=latex.encode("utf-8"),
                 media_type="application/x-tex",
@@ -52,8 +54,8 @@ async def export_resume(request: ExportRequest):
                 },
             )
 
-        elif request.format == "docx":
-            docx_buffer = markdown_to_docx(request.markdown_content)
+        elif body.format == "docx":
+            docx_buffer = markdown_to_docx(body.markdown_content)
             return StreamingResponse(
                 docx_buffer,
                 media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -62,9 +64,9 @@ async def export_resume(request: ExportRequest):
                 },
             )
 
-        elif request.format == "md":
+        elif body.format == "md":
             return Response(
-                content=request.markdown_content.encode("utf-8"),
+                content=body.markdown_content.encode("utf-8"),
                 media_type="text/markdown",
                 headers={
                     "Content-Disposition": f"attachment; filename={filename_base}.md"

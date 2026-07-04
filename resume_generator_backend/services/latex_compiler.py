@@ -1,8 +1,28 @@
-import asyncio
 import os
-import subprocess
-import tempfile
-from pathlib import Path
+
+import httpx
+
+LATEX_SERVICE_URL = os.getenv("LATEX_SERVICE_URL", "http://latex-service:8000")
+
+
+async def compile_latex_pdf(latex_content: str) -> bytes:
+    if r"\documentclass" not in latex_content:
+        latex_content = md_to_latex(latex_content)
+    else:
+        # strip anything before \documentclass (LLM sometimes prepends \begin{document})
+        idx = latex_content.index(r"\documentclass")
+        latex_content = latex_content[idx:]
+
+    async with httpx.AsyncClient(timeout=310) as client:
+        resp = await client.post(
+            f"{LATEX_SERVICE_URL}/compile",
+            json={"latex": latex_content},
+        )
+
+    if resp.status_code != 200:
+        raise RuntimeError(f"LaTeX service error: {resp.text}")
+
+    return resp.content
 
 
 def md_to_latex(markdown: str) -> str:
@@ -83,36 +103,3 @@ def _md_inline_to_latex(text: str) -> str:
     text = re.sub(r"\*\*(.+?)\*\*", r"\\textbf{\1}", text)
 
     return text
-
-
-async def compile_latex_pdf(latex_content: str) -> bytes:
-    """Compile LaTeX to PDF using Tectonic (runs in thread pool to avoid
-    blocking the event loop)."""
-    tectonic_path = os.getenv("TECTONIC_PATH", "tectonic")
-
-    # Auto-detect: if content is markdown (no \documentclass), convert it
-    if r"\documentclass" not in latex_content:
-        latex_content = md_to_latex(latex_content)
-
-    loop = asyncio.get_event_loop()
-
-    def _run():
-        with tempfile.TemporaryDirectory() as tmpdir:
-            tex_path = Path(tmpdir) / "resume.tex"
-            pdf_path = Path(tmpdir) / "resume.pdf"
-
-            tex_path.write_text(latex_content, encoding="utf-8")
-
-            result = subprocess.run(
-                [tectonic_path, str(tex_path), "--outdir", tmpdir],
-                capture_output=True,
-                text=True,
-                timeout=300,
-            )
-
-            if not pdf_path.exists():
-                raise RuntimeError(f"Tectonic compilation failed: {result.stderr}")
-
-            return pdf_path.read_bytes()
-
-    return await loop.run_in_executor(None, _run)

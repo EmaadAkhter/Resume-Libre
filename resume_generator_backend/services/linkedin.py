@@ -1,16 +1,41 @@
 import asyncio
+import json
 import os
+
 import httpx
+
+from services.cache import get_redis
 
 APIFY_BASE = "https://api.apify.com/v2"
 ACTOR_ID = "datadoping~linkedin-profile-scraper"
 
 
 async def fetch_linkedin_profile(profile_url: str) -> dict:
-    token = os.getenv("APIFY_API_TOKEN")
-    if not token or not profile_url:
+    if not profile_url:
         return {}
 
+    try:
+        redis = get_redis()
+        cached = await redis.get(f"linkedin:{profile_url}")
+        if cached:
+            return json.loads(cached)
+    except Exception:
+        redis = None
+
+    token = os.getenv("APIFY_API_TOKEN")
+    if not token:
+        return {}
+
+    data = await _fetch_from_apify(profile_url, token)
+    if data and redis:
+        try:
+            await redis.setex(f"linkedin:{profile_url}", 86400, json.dumps(data))
+        except Exception:
+            pass
+    return data
+
+
+async def _fetch_from_apify(profile_url: str, token: str) -> dict:
     async with httpx.AsyncClient(timeout=30) as client:
         # 1. Start actor run
         resp = await client.post(
