@@ -63,3 +63,6 @@ desktop.ini
 # ─── Logs ───────────────────────────────────────────
 *.log
 logs/
+
+# ─── Deployment guide (keep local, track with issues) ─
+DEPLOYMENT.md
