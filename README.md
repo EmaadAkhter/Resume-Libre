@@ -2,8 +2,6 @@
 
 <img src="resume-generator-frontend/public/logo.png" alt="Resume-Libre" width="400"/>
 
-# Resume-Libre
-
 **AI-powered resume generator that transforms your GitHub profile, LinkedIn, and experience into an ATS-ready, one-page resume — in seconds.**
 
 [![Backend](https://img.shields.io/badge/Backend-Python-46E3B7?style=for-the-badge&logo=python)](https://github.com/EmaadAkhter/resume-libre)
@@ -25,27 +23,27 @@ No templates to fight. No forms to fill for 20 minutes. Paste your GitHub userna
 
 ## Features
 
-| Feature | Details |
-|---|---|
-| **AI Generation** | Powered by any LLM via OpenRouter (single configurable model) |
-| **GitHub Integration** | Fetches your profile README via `httpx` — no MCP server needed |
-| **LinkedIn Scraping** | Scrapes LinkedIn profile via Apify actor (`datadoping~linkedin-profile-scraper`) |
-| **Job Description Targeting** | Tailor output to a specific role — feed in the JD and the LLM aligns priorities |
-| **Resume Upload** | Extracts text from existing PDF/DOCX/TXT resumes as context or template |
-| **Focus Modes** | Experience-first or Projects-first section ordering |
-| **Live Editor** | Edit the raw Markdown in-browser after generation |
-| **Preview** | Toggle between Markdown source and rendered preview |
-| **Export** | PDF (ReportLab), PDF (LaTeX via Tectonic), DOCX, Markdown, LaTeX source |
-| **Custom System Prompt** | Override the AI's instructions for full formatting control |
-| **Version Control** | Branch, commit, diff, and rollback resumes — like git for resumes |
-| **User Auth** | Supabase authentication with login/register flow |
-| **Template Library** | Save, share, and reuse custom resume templates (`.md` or `.tex`) |
-| **Admin Templates** | Admin role controls the public template library |
-| **Streaming** | Real-time token-by-token generation via SSE |
-| **Event Bus** | In-process pub/sub for logging, metrics, and debugging |
-| **Responsive UI** | Full mobile layout with dedicated form/resume views |
-| **ATS Validated** | Output checked for HTML tags, icon codes, and generic filler |
-| **Docker** | Dev and production compose files with tectonic cache volume |
+| Feature                       | Details                                                                          |
+| ----------------------------- | -------------------------------------------------------------------------------- |
+| **AI Generation**             | Powered by any LLM via OpenRouter (single configurable model)                    |
+| **GitHub Integration**        | Fetches your profile README via `httpx` — no MCP server needed                   |
+| **LinkedIn Scraping**         | Scrapes LinkedIn profile via Apify actor (`datadoping~linkedin-profile-scraper`) |
+| **Job Description Targeting** | Tailor output to a specific role — feed in the JD and the LLM aligns priorities  |
+| **Resume Upload**             | Extracts text from existing PDF/DOCX/TXT resumes as context or template          |
+| **Focus Modes**               | Experience-first or Projects-first section ordering                              |
+| **Live Editor**               | Edit the raw Markdown in-browser after generation                                |
+| **Preview**                   | Toggle between Markdown source and rendered preview                              |
+| **Export**                    | PDF (ReportLab), PDF (LaTeX via Tectonic), DOCX, Markdown, LaTeX source          |
+| **Custom System Prompt**      | Override the AI's instructions for full formatting control                       |
+| **Version Control**           | Branch, commit, diff, and rollback resumes — like git for resumes                |
+| **User Auth**                 | Supabase authentication with login/register flow                                 |
+| **Template Library**          | Save, share, and reuse custom resume templates (`.md` or `.tex`)                 |
+| **Admin Templates**           | Admin role controls the public template library                                  |
+| **Streaming**                 | Real-time token-by-token generation via SSE                                      |
+| **Event Bus**                 | In-process pub/sub for logging, metrics, and debugging                           |
+| **Responsive UI**             | Full mobile layout with dedicated form/resume views                              |
+| **ATS Validated**             | Output checked for HTML tags, icon codes, and generic filler                     |
+| **Docker**                    | Dev and production compose files with tectonic cache volume                      |
 
 ---
 
@@ -355,6 +353,7 @@ erDiagram
 ## Tech Stack
 
 ### Frontend
+
 - **React 19** — UI framework
 - **Vite 6** — Build tooling (not CRA)
 - **Tailwind CSS 3** — Utility-first styling
@@ -365,6 +364,7 @@ erDiagram
 - **Vitest** — Test runner
 
 ### Backend
+
 - **FastAPI** — Async Python web framework
 - **OpenRouter** — Multi-model LLM API (configurable model)
 - **httpx** — Async HTTP client for GitHub API
@@ -377,6 +377,7 @@ erDiagram
 - **python-dotenv** — Environment config
 
 ### Infrastructure
+
 - **Hostinger KVM2** — VPS (2 GB RAM, 1 vCPU, 40 GB SSD)
 - **Caddy** — Reverse proxy + automatic SSL (Let's Encrypt)
 - **Docker Compose** — Container orchestration
@@ -469,27 +470,27 @@ In production the frontend is served by nginx, which proxies `/api/*` to the bac
 
 ## API Reference
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/health` | Health check |
-| `GET` | `/get-system-prompt` | Fetch the current LLM system prompt |
-| `POST` | `/generate-resume` | Generate a resume (returns full markdown) |
-| `GET` | `/generate-resume-stream` | Generate a resume via SSE (token-by-token) |
-| `POST` | `/export-resume` | Export to PDF / LaTeX-PDF / DOCX / MD / LaTeX source |
-| `POST` | `/extract-resume` | Extract text from an uploaded file |
-| `GET` | `/resumes` | List saved resumes |
-| `POST` | `/resumes` | Create a new resume |
-| `GET` | `/resumes/{id}` | Get a resume with full version tree |
-| `POST` | `/resumes/{id}/versions` | Commit a new version |
-| `GET` | `/resumes/{id}/versions` | Get version history |
-| `GET` | `/resumes/{id}/diff` | Diff two versions |
-| `POST` | `/resumes/{id}/branches` | Create a branch |
-| `GET` | `/resumes/{id}/branches` | List branches |
-| `POST` | `/resumes/{id}/merge` | Merge branches |
-| `POST` | `/resumes/{id}/tags` | Tag a version |
-| `GET` | `/templates` | List available templates |
-| `POST` | `/templates` | Create a template |
-| `GET` | `/debug/events` | SSE stream of all internal events |
+| Method | Endpoint                  | Description                                          |
+| ------ | ------------------------- | ---------------------------------------------------- |
+| `GET`  | `/health`                 | Health check                                         |
+| `GET`  | `/get-system-prompt`      | Fetch the current LLM system prompt                  |
+| `POST` | `/generate-resume`        | Generate a resume (returns full markdown)            |
+| `GET`  | `/generate-resume-stream` | Generate a resume via SSE (token-by-token)           |
+| `POST` | `/export-resume`          | Export to PDF / LaTeX-PDF / DOCX / MD / LaTeX source |
+| `POST` | `/extract-resume`         | Extract text from an uploaded file                   |
+| `GET`  | `/resumes`                | List saved resumes                                   |
+| `POST` | `/resumes`                | Create a new resume                                  |
+| `GET`  | `/resumes/{id}`           | Get a resume with full version tree                  |
+| `POST` | `/resumes/{id}/versions`  | Commit a new version                                 |
+| `GET`  | `/resumes/{id}/versions`  | Get version history                                  |
+| `GET`  | `/resumes/{id}/diff`      | Diff two versions                                    |
+| `POST` | `/resumes/{id}/branches`  | Create a branch                                      |
+| `GET`  | `/resumes/{id}/branches`  | List branches                                        |
+| `POST` | `/resumes/{id}/merge`     | Merge branches                                       |
+| `POST` | `/resumes/{id}/tags`      | Tag a version                                        |
+| `GET`  | `/templates`              | List available templates                             |
+| `POST` | `/templates`              | Create a template                                    |
+| `GET`  | `/debug/events`           | SSE stream of all internal events                    |
 
 ### `POST /generate-resume`
 
@@ -507,6 +508,7 @@ In production the frontend is served by nginx, which proxies `/api/*` to the bac
 ```
 
 **Response:**
+
 ```json
 {
   "resume": "# John Doe\n[hi@example.com](...) | ...",
@@ -548,13 +550,13 @@ Output is validated by `clean_up.py` which strips artifacts and rejects low-qual
 
 ## Export Formats
 
-| Format | Label | Engine | Requires |
-|---|---|---|---|
-| `pdf` | PDF (Basic) | ReportLab | Nothing |
-| `latex_pdf` | PDF (LaTeX) | Tectonic | `tectonic` on PATH |
-| `docx` | DOCX | python-docx | Nothing |
-| `md` | Markdown | — | Nothing |
-| `latex` | LaTeX Source | — | Nothing |
+| Format      | Label        | Engine      | Requires           |
+| ----------- | ------------ | ----------- | ------------------ |
+| `pdf`       | PDF (Basic)  | ReportLab   | Nothing            |
+| `latex_pdf` | PDF (LaTeX)  | Tectonic    | `tectonic` on PATH |
+| `docx`      | DOCX         | python-docx | Nothing            |
+| `md`        | Markdown     | —           | Nothing            |
+| `latex`     | LaTeX Source | —           | Nothing            |
 
 ---
 
