@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="resume-generator-frontend/public/logo.png" alt="Resume-Libre" width="400"/>
+
 # Resume-Libre
 
 **AI-powered resume generator that transforms your GitHub profile, LinkedIn, and experience into an ATS-ready, one-page resume — in seconds.**
