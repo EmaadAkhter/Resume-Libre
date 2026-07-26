@@ -18,14 +18,21 @@ function usePublishedState(user) {
   useEffect(() => {
     if (!user) return undefined
     let cancelled = false
-    const refresh = () =>
-      supabase
-        .from('public_resumes')
-        .select('user_id')
-        .eq('user_id', user.id)
-        .maybeSingle()
-        .then(({ data }) => !cancelled && setPublished(Boolean(data)))
-        .catch(() => {})
+    const refresh = () => {
+      // Never let a probe failure take down the shell — this is chrome,
+      // not a critical path.
+      try {
+        supabase
+          .from('public_resumes')
+          .select('user_id')
+          .eq('user_id', user.id)
+          .maybeSingle()
+          .then(({ data }) => !cancelled && setPublished(Boolean(data)))
+          .catch(() => {})
+      } catch {
+        /* ignore */
+      }
+    }
     refresh()
     eventBus.on(EVENTS.PUBLISH_CHANGED, refresh)
     return () => {

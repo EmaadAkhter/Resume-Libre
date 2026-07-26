@@ -12,6 +12,8 @@ vi.mock('../lib/supabase', () => ({
           order: vi.fn(() => ({
             data: [],
           })),
+          // AppShell's published-state probe
+          maybeSingle: vi.fn(() => Promise.resolve({ data: null })),
         })),
       })),
       insert: vi.fn(() => ({ select: vi.fn(() => ({ single: vi.fn(() => ({ data: {} })) })) })),
