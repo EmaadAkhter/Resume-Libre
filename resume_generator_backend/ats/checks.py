@@ -92,8 +92,9 @@ def extraction_agreement(text_a, text_b, glued=False):
             f"{min(words_a, words_b)} words vs {max(words_a, words_b)} words "
             "from the same characters; usually a font/kerning or design-tool "
             "export issue.",
-            "Re-export from a standard word processor or LaTeX with a "
-            "standard font; avoid design-tool PDF exports.",
+            "Re-export with a standard font and normal word spacing — for "
+            "LaTeX prefer pdflatex with standard fonts over XeLaTeX "
+            "fontspec fonts; for design tools, rebuild in a word processor.",
         )
     return _check(
         "extraction-agreement",
@@ -185,8 +186,9 @@ def content_completeness(text_a, text_b, glued=False):
             "warn",
             f"Word-set overlap is low ({jaccard:.2f}) because of the "
             "word-spacing issue above — fix that first.",
-            "Re-export from a standard word processor or LaTeX with a "
-            "standard font; avoid design-tool PDF exports.",
+            "Re-export with a standard font and normal word spacing — for "
+            "LaTeX prefer pdflatex with standard fonts over XeLaTeX "
+            "fontspec fonts; for design tools, rebuild in a word processor.",
         )
     return _check(
         "content-completeness",
