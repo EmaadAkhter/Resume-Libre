@@ -234,7 +234,16 @@ function CategoryGroup({ category, checks }) {
 
 function FieldCard({ field, result }) {
   const meta = FIELD_META[field] || { label: field, Icon: LayoutList }
-  const conf = CONFIDENCE_META[result.confidence] || CONFIDENCE_META.low
+  // Values recovered from PDF link annotations aren't "low confidence
+  // extractions" — they're definite, just invisible to text-only parsers.
+  const fromAnnotation =
+    result.method === 'heuristic' &&
+    typeof result.value === 'string' &&
+    /^(https?:|mailto:|[^@\s]+@)/.test(result.value) &&
+    (field === 'linkedin' || field === 'github' || field === 'email')
+  const conf = fromAnnotation
+    ? { dot: 'bg-amber-500', label: 'link annotation only' }
+    : CONFIDENCE_META[result.confidence] || CONFIDENCE_META.low
   const notFound = result.value == null && !result.failed
   const value = Array.isArray(result.value) ? result.value : result.value
 

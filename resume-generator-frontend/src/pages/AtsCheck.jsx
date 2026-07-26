@@ -34,10 +34,15 @@ export default function AtsCheck({ inShell = false }) {
     }
   }, [report])
 
+  // Only fields the LLM fallback can actually address. Link-annotation
+  // recoveries (linkedin/github) stay low-confidence by design — the URL
+  // isn't in the visible text, so there's nothing for the AI to resolve.
+  const RESOLVABLE = ['name', 'email', 'phone', 'dates']
   const ambiguousCount = report?.extracted
-    ? Object.values(report.extracted).filter(
-        (r) => r.failed || r.confidence === 'low'
-      ).length
+    ? RESOLVABLE.filter((k) => {
+        const r = report.extracted[k]
+        return r && (r.failed || r.confidence === 'low')
+      }).length
     : 0
 
   const resolveWithAi = async () => {
