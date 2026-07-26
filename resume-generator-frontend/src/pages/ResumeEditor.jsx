@@ -8,6 +8,7 @@ import { useGenerationStream } from '../hooks/useGenerationStream'
 import { authHeaders } from '../lib/api'
 import { useTemplates } from '../hooks/useTemplates'
 import ResumeForm from '../components/ResumeForm'
+import FresherWizard from '../components/FresherWizard'
 import MarkdownEditor from '../components/MarkdownEditor'
 import ExportMenu from '../components/ExportMenu'
 import SystemPromptModal from '../components/SystemPromptModal'
@@ -31,6 +32,7 @@ export default function ResumeEditor({ user }) {
   const [copied, setCopied] = useState(false)
   const [currentBranch, setCurrentBranch] = useState('main')
   const [showHistory, setShowHistory] = useState(false)
+  const [inputMode, setInputMode] = useState('standard') // 'standard' | 'guided'
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -109,6 +111,10 @@ export default function ResumeEditor({ user }) {
   }, [loadResume])
 
   const handleGenerate = async (params) => {
+    // FresherWizard omits these — fall back to the editor's selections
+    params.resume_template ??= selectedTemplate?.content
+    params.priority ??= 'experience'
+
     setLoading(true)
     setResumeContent('')
     setPdfUrl(null)
@@ -325,16 +331,36 @@ export default function ResumeEditor({ user }) {
         {/* Left: Form */}
         <div className="w-80 flex-shrink-0">
           <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <ResumeForm
-              onGenerate={handleGenerate}
-              loading={loading}
-              backendConnected={backendConnected}
-              templates={templates}
-              selectedTemplate={selectedTemplate}
-              onSelectTemplate={selectTemplate}
-              user={user}
-              customSystemPrompt={customSystemPrompt}
-            />
+            <div className="flex text-xs rounded-lg border border-gray-300 overflow-hidden mb-4">
+              <button
+                type="button"
+                onClick={() => setInputMode('standard')}
+                className={`flex-1 px-2 py-1.5 font-medium ${inputMode === 'standard' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600'}`}
+              >
+                Standard
+              </button>
+              <button
+                type="button"
+                onClick={() => setInputMode('guided')}
+                className={`flex-1 px-2 py-1.5 font-medium ${inputMode === 'guided' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600'}`}
+              >
+                Guided (no GitHub needed)
+              </button>
+            </div>
+            {inputMode === 'standard' ? (
+              <ResumeForm
+                onGenerate={handleGenerate}
+                loading={loading}
+                backendConnected={backendConnected}
+                templates={templates}
+                selectedTemplate={selectedTemplate}
+                onSelectTemplate={selectTemplate}
+                user={user}
+                customSystemPrompt={customSystemPrompt}
+              />
+            ) : (
+              <FresherWizard onGenerate={handleGenerate} loading={loading} />
+            )}
           </div>
         </div>
 
