@@ -3,6 +3,12 @@
 @tailwind utilities;
 
 @layer base {
+  /* Global 1.1x scale — every Tailwind size is rem-based, so this is
+     exactly "browser zoom 110%", which is where the UI reads best. */
+  html {
+    font-size: 110%;
+  }
+
   body {
     @apply antialiased text-gray-900;
   }
