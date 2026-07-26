@@ -1,0 +1,64 @@
+% Friggeri-style — inspired by Adrien Friggeri's CV (bold header band,
+% gray/accent section titles) rebuilt on the article class: the real
+% friggeri-cv.cls needs XeLaTeX-only fonts and is not on CTAN.
+% Placeholders in {{DOUBLE_BRACES}} are filled by the AI with the user's data.
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=0.55in]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{fgray}{HTML}{4D4D4D}
+\definecolor{faccent}{HTML}{D44424}
+\definecolor{fband}{HTML}{F5F5F5}
+
+% Friggeri signature: gray word + accent word section titles handled by
+% \fsection{gray}{accent}
+\newcommand{\fsection}[2]{%
+  \vspace{8pt}{\large {\color{fgray}\bfseries #1}{\color{faccent}\bfseries #2}}\\[-8pt]
+  {\color{fgray}\rule{\linewidth}{0.6pt}}\\[2pt]}
+\setlength{\parindent}{0pt}
+\pagestyle{empty}
+
+\begin{document}
+
+\begin{center}
+  \colorbox{fband}{\parbox{\dimexpr\linewidth-2\fboxsep}{\centering
+    \vspace{6pt}
+    {\Huge {\color{fgray}{{FIRST_NAME}}} {\color{faccent}\bfseries {{LAST_NAME}}}}\\[4pt]
+    {\small\color{fgray} {{HEADLINE}}}\\[4pt]
+    {\footnotesize
+      \href{mailto:{{EMAIL}}}{{{EMAIL}}} \textbullet\ {{PHONE}} \textbullet\ {{LOCATION}} \textbullet\
+      \href{https://linkedin.com/in/{{LINKEDIN_HANDLE}}}{in/{{LINKEDIN_HANDLE}}} \textbullet\
+      \href{https://github.com/{{GITHUB_HANDLE}}}{gh/{{GITHUB_HANDLE}}}}
+    \vspace{6pt}}}
+\end{center}
+
+\fsection{Sum}{mary}
+{{SUMMARY_2_LINES}}
+
+\fsection{Exper}{ience}
+\textbf{{{JOB_TITLE}}} \textbar\ {{COMPANY}} \hfill {\color{faccent}\small {{DATES}}}
+\begin{itemize}[leftmargin=*,nosep,itemsep=2pt]
+  \item {{ACHIEVEMENT_1}}
+  \item {{ACHIEVEMENT_2}}
+  \item {{ACHIEVEMENT_3}}
+\end{itemize}
+
+\fsection{Pro}{jects}
+\textbf{{{PROJECT_NAME}}} \hfill {\color{faccent}\small \href{{{PROJECT_URL}}}{link}}
+\begin{itemize}[leftmargin=*,nosep,itemsep=2pt]
+  \item {{PROJECT_DESCRIPTION}}
+  \item {{PROJECT_TECH_STACK}}
+\end{itemize}
+
+\fsection{Sk}{ills}
+\textbf{Languages:} {{LANGUAGES}}\\
+\textbf{Frameworks:} {{FRAMEWORKS}}\\
+\textbf{Tools:} {{TOOLS}}
+
+\fsection{Educ}{ation}
+\textbf{{{DEGREE}}} \textbar\ {{UNIVERSITY}} \hfill {\color{faccent}\small {{GRAD_YEAR}}}
+
+\end{document}

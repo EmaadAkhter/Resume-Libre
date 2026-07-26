@@ -1,0 +1,66 @@
+% AltaCV-style — inspired by LianTze Lim's AltaCV look (accent-colored
+% headings, sidebar-feel via a two-column skills block) rebuilt on the
+% article class: the real altacv.cls is not on CTAN so it cannot compile
+% under Tectonic as a single file.
+% Placeholders in {{DOUBLE_BRACES}} are filled by the AI with the user's data.
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=0.5in]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+\usepackage{paracol}
+
+\definecolor{accent}{HTML}{AA0000}
+\definecolor{body}{HTML}{444444}
+
+\titleformat{\section}{\large\bfseries\color{accent}}{}{0em}{}[{\color{accent}\titlerule[0.8pt]}]
+\titlespacing{\section}{0pt}{8pt}{5pt}
+\setlength{\parindent}{0pt}
+\color{body}
+\pagestyle{empty}
+
+\begin{document}
+
+{\Huge\bfseries\color{accent} {{FIRST_NAME}} {{LAST_NAME}}}\\[3pt]
+{\large {{HEADLINE}}}\\[5pt]
+{\footnotesize
+  \href{mailto:{{EMAIL}}}{{{EMAIL}}} \,\textbullet\,
+  {{PHONE}} \,\textbullet\, {{LOCATION}} \,\textbullet\,
+  \href{https://linkedin.com/in/{{LINKEDIN_HANDLE}}}{in/{{LINKEDIN_HANDLE}}} \,\textbullet\,
+  \href{https://github.com/{{GITHUB_HANDLE}}}{gh/{{GITHUB_HANDLE}}}}
+
+\vspace{4pt}
+
+\section{Summary}
+{{SUMMARY_2_LINES}}
+
+\section{Experience}
+\textbf{{{JOB_TITLE}}} \hfill {\color{accent}\small {{DATES}}}\\
+{\small\itshape {{COMPANY}} — {{LOCATION}}}
+\begin{itemize}[leftmargin=*,nosep,itemsep=2pt]
+  \item {{ACHIEVEMENT_1}}
+  \item {{ACHIEVEMENT_2}}
+  \item {{ACHIEVEMENT_3}}
+\end{itemize}
+
+\section{Projects}
+\textbf{{{PROJECT_NAME}}} \hfill {\color{accent}\small \href{{{PROJECT_URL}}}{link}}
+\begin{itemize}[leftmargin=*,nosep,itemsep=2pt]
+  \item {{PROJECT_DESCRIPTION}}
+  \item {{PROJECT_TECH_STACK}}
+\end{itemize}
+
+\columnratio{0.5}
+\begin{paracol}{2}
+\section{Skills}
+\textbf{Languages:} {{LANGUAGES}}\\
+\textbf{Frameworks:} {{FRAMEWORKS}}\\
+\textbf{Tools:} {{TOOLS}}
+\switchcolumn
+\section{Education}
+\textbf{{{DEGREE}}} \hfill {\color{accent}\small {{GRAD_YEAR}}}\\
+{\small\itshape {{UNIVERSITY}}}
+\end{paracol}
+
+\end{document}

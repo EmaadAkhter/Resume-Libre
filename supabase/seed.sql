@@ -171,3 +171,241 @@ $tex$,
   true
 )
 ON CONFLICT DO NOTHING;
+
+-- 6-8. Community LaTeX templates (see templates/ directory + TEMPLATES.md)
+
+INSERT INTO templates (name, description, content, format, is_admin_only, is_public)
+VALUES (
+  'AltaCV Style',
+  'AltaCV-inspired layout with accent headings and two-column skills block. Compiles with Tectonic (CTAN packages only).',
+  $tex$% AltaCV-style — inspired by LianTze Lim's AltaCV look (accent-colored
+% headings, sidebar-feel via a two-column skills block) rebuilt on the
+% article class: the real altacv.cls is not on CTAN so it cannot compile
+% under Tectonic as a single file.
+% Placeholders in {{DOUBLE_BRACES}} are filled by the AI with the user's data.
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=0.5in]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+\usepackage{paracol}
+
+\definecolor{accent}{HTML}{AA0000}
+\definecolor{body}{HTML}{444444}
+
+\titleformat{\section}{\large\bfseries\color{accent}}{}{0em}{}[{\color{accent}\titlerule[0.8pt]}]
+\titlespacing{\section}{0pt}{8pt}{5pt}
+\setlength{\parindent}{0pt}
+\color{body}
+\pagestyle{empty}
+
+\begin{document}
+
+{\Huge\bfseries\color{accent} {{FIRST_NAME}} {{LAST_NAME}}}\\[3pt]
+{\large {{HEADLINE}}}\\[5pt]
+{\footnotesize
+  \href{mailto:{{EMAIL}}}{{{EMAIL}}} \,\textbullet\,
+  {{PHONE}} \,\textbullet\, {{LOCATION}} \,\textbullet\,
+  \href{https://linkedin.com/in/{{LINKEDIN_HANDLE}}}{in/{{LINKEDIN_HANDLE}}} \,\textbullet\,
+  \href{https://github.com/{{GITHUB_HANDLE}}}{gh/{{GITHUB_HANDLE}}}}
+
+\vspace{4pt}
+
+\section{Summary}
+{{SUMMARY_2_LINES}}
+
+\section{Experience}
+\textbf{{{JOB_TITLE}}} \hfill {\color{accent}\small {{DATES}}}\\
+{\small\itshape {{COMPANY}} — {{LOCATION}}}
+\begin{itemize}[leftmargin=*,nosep,itemsep=2pt]
+  \item {{ACHIEVEMENT_1}}
+  \item {{ACHIEVEMENT_2}}
+  \item {{ACHIEVEMENT_3}}
+\end{itemize}
+
+\section{Projects}
+\textbf{{{PROJECT_NAME}}} \hfill {\color{accent}\small \href{{{PROJECT_URL}}}{link}}
+\begin{itemize}[leftmargin=*,nosep,itemsep=2pt]
+  \item {{PROJECT_DESCRIPTION}}
+  \item {{PROJECT_TECH_STACK}}
+\end{itemize}
+
+\columnratio{0.5}
+\begin{paracol}{2}
+\section{Skills}
+\textbf{Languages:} {{LANGUAGES}}\\
+\textbf{Frameworks:} {{FRAMEWORKS}}\\
+\textbf{Tools:} {{TOOLS}}
+\switchcolumn
+\section{Education}
+\textbf{{{DEGREE}}} \hfill {\color{accent}\small {{GRAD_YEAR}}}\\
+{\small\itshape {{UNIVERSITY}}}
+\end{paracol}
+
+\end{document}
+$tex$,
+  'tex',
+  false,
+  true
+)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO templates (name, description, content, format, is_admin_only, is_public)
+VALUES (
+  'Deedy Style',
+  'Deedy-Resume-inspired two-column layout (skills/education sidebar). Compiles with Tectonic.',
+  $tex$% Deedy-style — inspired by Debarghya Das's Deedy-Resume two-column look,
+% rebuilt on the article class with paracol: deedy-resume.cls is not on
+% CTAN so it cannot compile under Tectonic as a single file.
+% Placeholders in {{DOUBLE_BRACES}} are filled by the AI with the user's data.
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=0.5in]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+\usepackage{paracol}
+
+\definecolor{deedyblue}{HTML}{2C6FBB}
+\definecolor{gray}{HTML}{5C5C5C}
+
+\titleformat{\section}{\normalsize\bfseries\color{deedyblue}}{}{0em}{\MakeUppercase}[{\titlerule[0.6pt]}]
+\titlespacing{\section}{0pt}{8pt}{4pt}
+\setlength{\parindent}{0pt}
+\pagestyle{empty}
+
+\begin{document}
+
+\begin{center}
+  {\Huge {{FIRST_NAME}} {\bfseries\color{deedyblue}{{LAST_NAME}}}}\\[3pt]
+  {\small\color{gray} {{HEADLINE}}}\\[4pt]
+  {\footnotesize
+    \href{mailto:{{EMAIL}}}{{{EMAIL}}} | {{PHONE}} | {{LOCATION}} |
+    \href{https://linkedin.com/in/{{LINKEDIN_HANDLE}}}{in/{{LINKEDIN_HANDLE}}} |
+    \href{https://github.com/{{GITHUB_HANDLE}}}{gh/{{GITHUB_HANDLE}}}}
+\end{center}
+
+\columnratio{0.33}
+\begin{paracol}{2}
+
+% ─── Left column ───
+\section{Skills}
+\textbf{Languages}\\ {{LANGUAGES}}\\[4pt]
+\textbf{Frameworks}\\ {{FRAMEWORKS}}\\[4pt]
+\textbf{Tools}\\ {{TOOLS}}
+
+\section{Education}
+\textbf{{{UNIVERSITY}}}\\
+{\small {{DEGREE}}}\\
+{\small\color{gray} {{GRAD_YEAR}}}
+
+\section{Links}
+\href{https://github.com/{{GITHUB_HANDLE}}}{github.com/{{GITHUB_HANDLE}}}\\
+\href{https://linkedin.com/in/{{LINKEDIN_HANDLE}}}{linkedin.com/in/{{LINKEDIN_HANDLE}}}
+
+\switchcolumn
+
+% ─── Right column ───
+\section{Summary}
+{{SUMMARY_2_LINES}}
+
+\section{Experience}
+\textbf{{{COMPANY}}} \textbar\ {{JOB_TITLE}} \hfill {\color{gray}\small {{DATES}}}
+\begin{itemize}[leftmargin=*,nosep,itemsep=2pt]
+  \item {{ACHIEVEMENT_1}}
+  \item {{ACHIEVEMENT_2}}
+  \item {{ACHIEVEMENT_3}}
+\end{itemize}
+
+\section{Projects}
+\textbf{{{PROJECT_NAME}}} \hfill {\color{gray}\small \href{{{PROJECT_URL}}}{link}}
+\begin{itemize}[leftmargin=*,nosep,itemsep=2pt]
+  \item {{PROJECT_DESCRIPTION}}
+  \item {{PROJECT_TECH_STACK}}
+\end{itemize}
+
+\end{paracol}
+
+\end{document}
+$tex$,
+  'tex',
+  false,
+  true
+)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO templates (name, description, content, format, is_admin_only, is_public)
+VALUES (
+  'Friggeri Style',
+  'Friggeri-CV-inspired design with header band and two-tone section titles. Compiles with Tectonic.',
+  $tex$% Friggeri-style — inspired by Adrien Friggeri's CV (bold header band,
+% gray/accent section titles) rebuilt on the article class: the real
+% friggeri-cv.cls needs XeLaTeX-only fonts and is not on CTAN.
+% Placeholders in {{DOUBLE_BRACES}} are filled by the AI with the user's data.
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=0.55in]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{fgray}{HTML}{4D4D4D}
+\definecolor{faccent}{HTML}{D44424}
+\definecolor{fband}{HTML}{F5F5F5}
+
+% Friggeri signature: gray word + accent word section titles handled by
+% \fsection{gray}{accent}
+\newcommand{\fsection}[2]{%
+  \vspace{8pt}{\large {\color{fgray}\bfseries #1}{\color{faccent}\bfseries #2}}\\[-8pt]
+  {\color{fgray}\rule{\linewidth}{0.6pt}}\\[2pt]}
+\setlength{\parindent}{0pt}
+\pagestyle{empty}
+
+\begin{document}
+
+\begin{center}
+  \colorbox{fband}{\parbox{\dimexpr\linewidth-2\fboxsep}{\centering
+    \vspace{6pt}
+    {\Huge {\color{fgray}{{FIRST_NAME}}} {\color{faccent}\bfseries {{LAST_NAME}}}}\\[4pt]
+    {\small\color{fgray} {{HEADLINE}}}\\[4pt]
+    {\footnotesize
+      \href{mailto:{{EMAIL}}}{{{EMAIL}}} \textbullet\ {{PHONE}} \textbullet\ {{LOCATION}} \textbullet\
+      \href{https://linkedin.com/in/{{LINKEDIN_HANDLE}}}{in/{{LINKEDIN_HANDLE}}} \textbullet\
+      \href{https://github.com/{{GITHUB_HANDLE}}}{gh/{{GITHUB_HANDLE}}}}
+    \vspace{6pt}}}
+\end{center}
+
+\fsection{Sum}{mary}
+{{SUMMARY_2_LINES}}
+
+\fsection{Exper}{ience}
+\textbf{{{JOB_TITLE}}} \textbar\ {{COMPANY}} \hfill {\color{faccent}\small {{DATES}}}
+\begin{itemize}[leftmargin=*,nosep,itemsep=2pt]
+  \item {{ACHIEVEMENT_1}}
+  \item {{ACHIEVEMENT_2}}
+  \item {{ACHIEVEMENT_3}}
+\end{itemize}
+
+\fsection{Pro}{jects}
+\textbf{{{PROJECT_NAME}}} \hfill {\color{faccent}\small \href{{{PROJECT_URL}}}{link}}
+\begin{itemize}[leftmargin=*,nosep,itemsep=2pt]
+  \item {{PROJECT_DESCRIPTION}}
+  \item {{PROJECT_TECH_STACK}}
+\end{itemize}
+
+\fsection{Sk}{ills}
+\textbf{Languages:} {{LANGUAGES}}\\
+\textbf{Frameworks:} {{FRAMEWORKS}}\\
+\textbf{Tools:} {{TOOLS}}
+
+\fsection{Educ}{ation}
+\textbf{{{DEGREE}}} \textbar\ {{UNIVERSITY}} \hfill {\color{faccent}\small {{GRAD_YEAR}}}
+
+\end{document}
+$tex$,
+  'tex',
+  false,
+  true
+)
+ON CONFLICT DO NOTHING;
