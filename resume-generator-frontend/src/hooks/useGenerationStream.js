@@ -8,6 +8,7 @@ export function useGenerationStream() {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
     const queryParams = new URLSearchParams()
 
+    if (params.profiles?.length) queryParams.set('profiles', JSON.stringify(params.profiles))
     if (params.github_username) queryParams.set('github_username', params.github_username)
     if (params.linkedin_url) queryParams.set('linkedin_url', params.linkedin_url)
     if (params.hf_username) queryParams.set('hf_username', params.hf_username)

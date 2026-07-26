@@ -9,12 +9,51 @@ from fastapi.responses import StreamingResponse
 from core.deps import require_user_or_demo
 from core.event_types import Events
 from core.limiter import limiter
-from schemas.resume import AtsScoreRequest, ResumeRequest, ResumeResponse
+from schemas.resume import AtsScoreRequest, ProfileRef, ResumeRequest, ResumeResponse
 from services.ats_score import analyze_ats
 from services.events import bus
 from services.pipeline import pipeline
 
 router = APIRouter(tags=["generation"])
+
+MAX_PROFILES = 10
+
+
+def _normalize_profiles(
+    profiles: list[ProfileRef] | None,
+    github_username: str | None = None,
+    linkedin_url: str | None = None,
+    hf_username: str | None = None,
+    orcid_id: str | None = None,
+) -> list[ProfileRef]:
+    """Merge profile rows with the legacy scalar params into one list.
+
+    Scalars are appended as rows when non-blank, duplicates (same type and
+    stripped value) collapse, and the result is capped at MAX_PROFILES.
+    """
+    refs = list(profiles or [])
+    for ptype, value in (
+        ("github", github_username),
+        ("linkedin", linkedin_url),
+        ("huggingface", hf_username),
+        ("orcid", orcid_id),
+    ):
+        if value and value.strip():
+            refs.append(ProfileRef(type=ptype, value=value.strip()))
+
+    seen: set[tuple[str, str]] = set()
+    normalized: list[ProfileRef] = []
+    for ref in refs:
+        key = (ref.type, ref.value.strip())
+        if not key[1] or key in seen:
+            continue
+        seen.add(key)
+        normalized.append(ref)
+    return normalized[:MAX_PROFILES]
+
+
+def _first_github(profiles: list[ProfileRef]) -> str:
+    return next((p.value for p in profiles if p.type == "github"), "")
 
 
 @router.post("/generate-resume", response_model=ResumeResponse)
@@ -24,19 +63,24 @@ async def create_resume(
     body: ResumeRequest,
     user: dict = Depends(require_user_or_demo),
 ):
-    if not body.github_username and not body.additional_info and not body.linkedin_url:
+    normalized = _normalize_profiles(
+        body.profiles,
+        body.github_username,
+        body.linkedin_url,
+        body.hf_username,
+        body.orcid_id,
+    )
+    if not normalized and not body.additional_info:
         raise HTTPException(
             status_code=400,
-            detail="Please provide either a GitHub username, LinkedIn URL, or additional information",
+            detail="Please provide at least one profile source or additional information",
         )
 
     try:
         resume = await pipeline.run(
             demo=user.get("demo", False),
-            github_username=body.github_username or "",
-            linkedin_url=body.linkedin_url or "",
-            hf_username=body.hf_username or "",
-            orcid_id=body.orcid_id or "",
+            profiles=normalized,
+            github_username=_first_github(normalized),
             additional_info=body.additional_info or "",
             job_description=body.job_description or "",
             priority=body.priority,
@@ -63,6 +107,7 @@ async def stream_resume_generation(
     linkedin_url: str | None = Query(None),
     hf_username: str | None = Query(None, max_length=60),
     orcid_id: str | None = Query(None, max_length=60),
+    profiles: str | None = Query(None, max_length=4000),
     additional_info: str | None = Query(None),
     job_description: str | None = Query(None),
     priority: str = Query("experience"),
@@ -77,10 +122,23 @@ async def stream_resume_generation(
     Emits: data: {"event": "token", "content": "..."} for each token.
     Final: data: {"event": "done", "content": "..."} with full resume.
     """
-    if not github_username and not additional_info and not linkedin_url:
+    parsed_profiles: list[ProfileRef] = []
+    if profiles:
+        try:
+            raw = json.loads(profiles)
+            if not isinstance(raw, list) or len(raw) > MAX_PROFILES:
+                raise ValueError("profiles must be a list of at most 10 entries")
+            parsed_profiles = [ProfileRef.model_validate(item) for item in raw]
+        except ValueError:  # covers JSONDecodeError and pydantic ValidationError
+            raise HTTPException(status_code=422, detail="invalid profiles parameter")
+
+    normalized = _normalize_profiles(
+        parsed_profiles, github_username, linkedin_url, hf_username, orcid_id
+    )
+    if not normalized and not additional_info:
         raise HTTPException(
             status_code=400,
-            detail="Provide github_username, linkedin_url, or additional_info",
+            detail="Provide at least one profile source or additional_info",
         )
 
     async def event_stream():
@@ -88,10 +146,8 @@ async def stream_resume_generation(
         try:
             async for token in pipeline.run_stream(
                 demo=user.get("demo", False),
-                github_username=github_username or "",
-                linkedin_url=linkedin_url or "",
-                hf_username=hf_username or "",
-                orcid_id=orcid_id or "",
+                profiles=normalized,
+                github_username=_first_github(normalized),
                 additional_info=additional_info or "",
                 job_description=job_description or "",
                 priority=priority,
