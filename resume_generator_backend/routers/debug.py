@@ -1,13 +1,14 @@
 import asyncio
 import json
+from collections.abc import Callable
 from datetime import datetime
-from typing import Any, Callable
+from typing import Any
 
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
-from services.events import bus, EventBus
 from core.event_types import Events
+from services.events import EventBus, bus
 
 router = APIRouter(prefix="/debug", tags=["debug"])
 

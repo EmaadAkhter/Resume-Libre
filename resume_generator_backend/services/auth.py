@@ -1,12 +1,11 @@
 import os
-from typing import Optional
 
 from dotenv import load_dotenv
-from supabase import create_client, Client
+from supabase import Client, create_client
 
 load_dotenv()
 
-_supabase_client: Optional[Client] = None
+_supabase_client: Client | None = None
 
 
 def get_supabase_client() -> Client:

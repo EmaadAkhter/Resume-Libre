@@ -1,0 +1,10 @@
+# Pins lint behavior so CI (rolling ruff versions via ruff-action) stays
+# stable. Rules ignored here are deliberate patterns, not oversights.
+[lint]
+ignore = [
+    "B008",   # Depends()/File() in argument defaults — the FastAPI idiom
+    "BLE001", # broad `except Exception` — fetchers/routers deliberately fail open/wrap to HTTP errors
+    "S110",   # try-except-pass around Redis cache — cache failure must never break a request
+    "RUF012", # class-attribute registry lists (event names) are effectively constants
+    "DTZ005", # naive datetime.now() in debug-event timestamps — display only
+]

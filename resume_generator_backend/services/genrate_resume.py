@@ -2,9 +2,9 @@ import logging
 import os
 import re
 import time
-from typing import Optional
-from openai import OpenAI
+
 from fastapi import HTTPException
+from openai import OpenAI
 
 logger = logging.getLogger("resume_libre")
 
@@ -54,7 +54,7 @@ def _get_model() -> str:
 
 async def generate_resume_content(
     user_prompt: str,
-    custom_system_prompt: Optional[str] = None,
+    custom_system_prompt: str | None = None,
     template_format: str = "md",
     demo: bool = False,
 ) -> str:
@@ -94,7 +94,7 @@ async def generate_resume_content(
             extra_body={"reasoning": {"enabled": True}},
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"AI generation failed: {e!s}")
 
     usage = getattr(completion, "usage", None)
     logger.info(
@@ -131,7 +131,7 @@ async def generate_resume_content(
 
 async def generate_resume_stream(
     user_prompt: str,
-    custom_system_prompt: Optional[str] = None,
+    custom_system_prompt: str | None = None,
     template_format: str = "md",
     demo: bool = False,
 ):
@@ -173,7 +173,7 @@ async def generate_resume_stream(
             extra_body={"reasoning": {"enabled": True}},
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"AI generation failed: {e!s}")
 
     full_content = ""
     usage = None

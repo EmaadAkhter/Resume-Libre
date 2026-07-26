@@ -1,6 +1,7 @@
 import asyncio
-from typing import Callable, Any
 from collections import defaultdict
+from collections.abc import Callable
+from typing import Any
 
 
 class EventBus:

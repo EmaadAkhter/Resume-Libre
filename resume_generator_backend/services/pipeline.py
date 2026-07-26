@@ -1,10 +1,12 @@
-from typing import Optional, Callable, Any
+from collections.abc import Callable
+from typing import Any
+
+from core.event_types import Events
 from services.events import bus
+from services.genrate_resume import generate_resume_content, generate_resume_stream
 from services.github import fetch_github_readme
 from services.linkedin import fetch_linkedin_profile
 from services.prompt import build_user_prompt
-from services.genrate_resume import generate_resume_content, generate_resume_stream
-from core.event_types import Events
 
 
 class ResumePipeline:
@@ -53,8 +55,8 @@ class ResumePipeline:
         additional_info: str = "",
         job_description: str = "",
         priority: str = "experience",
-        custom_system_prompt: Optional[str] = None,
-        resume_template: Optional[str] = None,
+        custom_system_prompt: str | None = None,
+        resume_template: str | None = None,
         template_format: str = "md",
         demo: bool = False,
     ) -> str:
@@ -113,8 +115,8 @@ class ResumePipeline:
         additional_info: str = "",
         job_description: str = "",
         priority: str = "experience",
-        custom_system_prompt: Optional[str] = None,
-        resume_template: Optional[str] = None,
+        custom_system_prompt: str | None = None,
+        resume_template: str | None = None,
         template_format: str = "md",
         demo: bool = False,
     ):

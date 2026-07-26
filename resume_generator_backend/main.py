@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from core.app import create_app  # noqa: E402
+from core.app import create_app
 
 app = create_app()
 

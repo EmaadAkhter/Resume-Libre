@@ -73,17 +73,15 @@ def check_by_id(body, check_id):
 def client():
     # mock_env_vars (conftest, autouse) has already set RATE_LIMIT_STORAGE
     # to memory:// before the app is imported here.
-    from main import app
     from core.limiter import limiter
+    from main import app
 
     limiter.reset()  # 5/hour would trip across the test session otherwise
     return TestClient(app)
 
 
 def post_file(client, filename, data, content_type="application/pdf"):
-    return client.post(
-        "/ats/check", files={"file": (filename, data, content_type)}
-    )
+    return client.post("/ats/check", files={"file": (filename, data, content_type)})
 
 
 def test_clean_single_column_pdf_passes_all_checks(client):

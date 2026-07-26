@@ -5,9 +5,9 @@ from core.deps import require_user_or_demo
 from core.limiter import limiter
 from schemas.export import ExportRequest
 from services.export_utils import (
-    markdown_to_latex_pdf,
-    latex_to_pdf,
     get_filename_base,
+    latex_to_pdf,
+    markdown_to_latex_pdf,
 )
 from services.latex_compiler import md_to_latex
 
@@ -53,6 +53,4 @@ async def export_resume(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to export resume: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to export resume: {e!s}")

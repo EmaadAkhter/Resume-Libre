@@ -1,5 +1,6 @@
+from typing import Literal
+
 from pydantic import BaseModel
-from typing import Optional, Literal
 
 
 class CreateTemplateRequest(BaseModel):
@@ -12,9 +13,9 @@ class CreateTemplateRequest(BaseModel):
 
 
 class UpdateTemplateRequest(BaseModel):
-    name: Optional[str] = None
-    content: Optional[str] = None
-    format: Optional[Literal["md", "tex"]] = None
-    description: Optional[str] = None
-    is_admin_only: Optional[bool] = None
-    is_public: Optional[bool] = None
+    name: str | None = None
+    content: str | None = None
+    format: Literal["md", "tex"] | None = None
+    description: str | None = None
+    is_admin_only: bool | None = None
+    is_public: bool | None = None

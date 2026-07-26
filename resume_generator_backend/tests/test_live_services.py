@@ -90,12 +90,16 @@ async def test_generation_short_output_rejected():
 async def test_sidecar_down_returns_503():
     from services.latex_compiler import compile_latex_pdf
 
-    with patch(
-        "httpx.AsyncClient",
-        return_value=_async_client_returning(error=httpx.ConnectError("refused")),
+    with (
+        patch(
+            "httpx.AsyncClient",
+            return_value=_async_client_returning(error=httpx.ConnectError("refused")),
+        ),
+        pytest.raises(HTTPException) as exc,
     ):
-        with pytest.raises(HTTPException) as exc:
-            await compile_latex_pdf("\\documentclass{article}\\begin{document}x\\end{document}")
+        await compile_latex_pdf(
+            "\\documentclass{article}\\begin{document}x\\end{document}"
+        )
     assert exc.value.status_code == 503
 
 
