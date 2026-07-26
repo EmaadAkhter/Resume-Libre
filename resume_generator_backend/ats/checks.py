@@ -5,8 +5,18 @@ Explicitly no blended numeric score — a checklist is honest, a score is not.
 """
 
 import difflib
-import re
 
+# Canonical contact/section regexes live in ats.extraction so the checklist
+# and the field-extraction preview can never disagree.
+from ats.extraction import (
+    EMAIL_RE as _EMAIL_RE,
+)
+from ats.extraction import (
+    HEADER_RE as _HEADER_RE,
+)
+from ats.extraction import (
+    PHONE_CANDIDATE_RE as _PHONE_CANDIDATE_RE,
+)
 from ats.thresholds import (
     AGREEMENT_PASS,
     AGREEMENT_WARN,
@@ -14,14 +24,6 @@ from ats.thresholds import (
     MIN_SECTION_HEADERS,
 )
 
-_EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
-# ponytail: naive candidate-then-digit-count phone matching; year ranges with
-# 9+ digits can false-positive. Upgrade path: the `phonenumbers` library.
-_PHONE_CANDIDATE_RE = re.compile(r"\+?[\d(][\d\s().-]{7,}\d")
-_HEADER_RE = re.compile(
-    r"^\s*(experience|education|skills|projects|summary|work history)\b",
-    re.IGNORECASE | re.MULTILINE,
-)
 # Private Use Areas (BMP + planes 15/16): where icon fonts live.
 _PUA_RANGES = ((0xE000, 0xF8FF), (0xF0000, 0xFFFFD), (0x100000, 0x10FFFD))
 

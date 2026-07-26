@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   CheckCircle,
+  FileSearch,
   Loader2,
   Upload,
   XCircle,
@@ -15,6 +16,22 @@ const STATUS_META = {
   fail: { Icon: XCircle, color: 'text-red-600', label: 'Fail' },
 }
 
+const FIELD_LABELS = {
+  email: 'Email',
+  phone: 'Phone',
+  linkedin: 'LinkedIn',
+  github: 'GitHub',
+  name: 'Name',
+  dates: 'Dates',
+  sections: 'Sections',
+}
+
+const CONFIDENCE_META = {
+  high: { className: 'bg-green-100 text-green-700', label: 'high confidence' },
+  medium: { className: 'bg-yellow-100 text-yellow-700', label: 'AI-assisted' },
+  low: { className: 'bg-amber-100 text-amber-700', label: 'low confidence' },
+}
+
 // No account, no auth header — the endpoint is unauthenticated by design
 // and everything is processed in memory server-side.
 export default function AtsCheck() {
@@ -22,6 +39,8 @@ export default function AtsCheck() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [dragging, setDragging] = useState(false)
+  // Kept for stage 3 part 2: re-submitting the same file for the LLM pass.
+  const [lastFile, setLastFile] = useState(null)
   const inputRef = useRef(null)
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -32,6 +51,7 @@ export default function AtsCheck() {
       setError('Only .pdf and .docx files are supported.')
       return
     }
+    setLastFile(file)
     setLoading(true)
     setError(null)
     setReport(null)
@@ -133,7 +153,7 @@ export default function AtsCheck() {
           <div className="mt-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-gray-900 text-sm truncate pr-4">
-                {report.filename}
+                {report.filename || lastFile?.name}
               </h2>
               <span className="text-sm text-gray-600 whitespace-nowrap">
                 {summary.passed} passed · {summary.warned} warnings · {summary.failed} failed
@@ -165,6 +185,51 @@ export default function AtsCheck() {
                 )
               })}
             </div>
+
+            {report.extracted && (
+              <div className="mt-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <FileSearch className="w-4 h-4 text-gray-500" />
+                  <h2 className="font-semibold text-gray-900 text-sm">
+                    What an ATS would extract
+                  </h2>
+                </div>
+                <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+                  {Object.entries(report.extracted).map(([field, result]) => {
+                    const conf = CONFIDENCE_META[result.confidence] || CONFIDENCE_META.low
+                    const value = Array.isArray(result.value)
+                      ? result.value.join(', ')
+                      : result.value
+                    return (
+                      <div key={field} className="p-4 flex items-start gap-3">
+                        <span className="w-20 shrink-0 text-sm font-medium text-gray-700">
+                          {FIELD_LABELS[field] || field}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          {value ? (
+                            <p className="text-sm text-gray-900 break-words">{value}</p>
+                          ) : (
+                            <p className="text-sm text-gray-400">not found</p>
+                          )}
+                          {result.failed && (
+                            <p className="mt-1 flex items-center gap-1 text-xs text-red-600">
+                              <XCircle className="w-3.5 h-3.5 shrink-0" />
+                              couldn't parse — something looks like this field but
+                              isn't readable
+                            </p>
+                          )}
+                        </div>
+                        <span
+                          className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${conf.className}`}
+                        >
+                          {conf.label}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
             <p className="mt-6 text-xs text-gray-500 text-center">
               Want a resume that passes these checks by construction?{' '}
