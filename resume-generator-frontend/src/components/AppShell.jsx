@@ -12,8 +12,16 @@ const NAV_ITEMS = [
 
 // True while the user has a live published resume — drives the
 // "Public resume" nav item and stays in sync with Publish/Unpublish.
+// Module-level cache seeds remounts so the nav item never blinks while
+// the probe re-resolves.
+let lastKnownPublished = false
+
 function usePublishedState(user) {
-  const [published, setPublished] = useState(false)
+  const [published, setPublishedState] = useState(lastKnownPublished)
+  const setPublished = (v) => {
+    lastKnownPublished = v
+    setPublishedState(v)
+  }
 
   useEffect(() => {
     if (!user) return undefined
