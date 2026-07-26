@@ -14,6 +14,8 @@ import {
   XCircle,
 } from 'lucide-react'
 
+import { BandGauge, OutcomeBar, ThresholdMeter } from './AtsCharts'
+
 // Status is a reserved scale and always ships icon + label, never color alone.
 const STATUS_META = {
   pass: {
@@ -43,7 +45,8 @@ const STATUS_META = {
 }
 
 // Friendly names — the API's check ids are machine identifiers.
-const CHECK_TITLES = {
+// Named export: the editor reuses these to build regeneration feedback.
+export const CHECK_TITLES = {
   'extraction-agreement': 'Text extraction agreement',
   columns: 'Column layout',
   tables: 'Tables',
@@ -51,10 +54,17 @@ const CHECK_TITLES = {
   'content-completeness': 'Content completeness',
   'section-headers': 'Section headings',
   'contact-info': 'Contact info',
+  'page-count': 'Page count',
+  'resume-length': 'Resume length',
+  'font-count': 'Font variety',
+  'tiny-font': 'Tiny font sizes',
+  images: 'Images & graphics',
+  'special-characters': 'Special characters',
+  margins: 'Page margins',
   'link-only-contact': 'Clickable-link contacts',
   'header-footer-contact': 'Header/footer contact',
   'scanned-pdf': 'Scanned PDF',
-  'writing-suggestions': 'Writing suggestions',
+  'writing-tips': 'Writing suggestions',
 }
 
 const FIELD_META = {
@@ -130,6 +140,8 @@ function CheckRow({ check }) {
       </summary>
       <div className="px-4 pb-3 pl-12">
         <p className="text-sm text-gray-600">{check.reason}</p>
+        {check.metric?.kind === 'ratio' && <ThresholdMeter metric={check.metric} />}
+        {check.metric?.kind === 'band' && <BandGauge metric={check.metric} />}
         {needsAttention && check.fix && check.fix !== 'No action needed.' && (
           <p className="mt-1.5 text-sm text-gray-700">
             <span className="font-medium">Fix:</span> {check.fix}
@@ -201,10 +213,13 @@ export default function AtsReport({ report, compact = false }) {
       {compact ? (
         <SummaryPills summary={summary} />
       ) : (
-        <div className="flex gap-3">
-          <StatTile count={summary.passed} label="Passed" tone="pass" />
-          <StatTile count={summary.warned} label="Warnings" tone="warn" />
-          <StatTile count={summary.failed} label="Failed" tone="fail" />
+        <div className="space-y-3">
+          <div className="flex gap-3">
+            <StatTile count={summary.passed} label="Passed" tone="pass" />
+            <StatTile count={summary.warned} label="Warnings" tone="warn" />
+            <StatTile count={summary.failed} label="Failed" tone="fail" />
+          </div>
+          <OutcomeBar summary={summary} />
         </div>
       )}
 

@@ -41,6 +41,7 @@ async def create_resume(
             custom_system_prompt=body.custom_system_prompt,
             resume_template=body.resume_template,
             template_format=body.template_format,
+            ats_feedback=body.ats_feedback,
         )
         await bus.publish(Events.LLM_COMPLETED, {"length": len(resume)})
         return ResumeResponse(resume=resume, status="success")
@@ -64,6 +65,7 @@ async def stream_resume_generation(
     custom_system_prompt: str | None = Query(None),
     resume_template: str | None = Query(None),
     template_format: str = Query("tex"),
+    ats_feedback: str | None = Query(None, max_length=4000),
     user: dict = Depends(require_user_or_demo),
 ):
     """Stream resume generation via Server-Sent Events (SSE).
@@ -90,6 +92,7 @@ async def stream_resume_generation(
                 custom_system_prompt=custom_system_prompt,
                 resume_template=resume_template,
                 template_format=template_format,
+                ats_feedback=ats_feedback,
             ):
                 full_content += token
                 yield f"data: {json.dumps({'event': 'token', 'content': token})}\n\n"

@@ -16,6 +16,7 @@ export function useGenerationStream() {
     if (params.custom_system_prompt) queryParams.set('custom_system_prompt', params.custom_system_prompt)
     if (params.resume_template) queryParams.set('resume_template', params.resume_template)
     if (params.template_format) queryParams.set('template_format', params.template_format)
+    if (params.ats_feedback) queryParams.set('ats_feedback', params.ats_feedback)
 
     eventBus.emit(EVENTS.GENERATION_STARTED)
 

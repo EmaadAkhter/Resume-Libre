@@ -29,7 +29,9 @@ async def list_roles():
 
 
 @router.post("/check")
-@limiter.limit("30/hour")  # pure CPU; generous so the editor's auto-check per compile fits
+@limiter.limit(
+    "30/hour"
+)  # pure CPU; generous so the editor's auto-check per compile fits
 async def check_resume(request: Request, file: UploadFile = File(...)):
     data = await file.read()
     kind = input_handler.validate_upload(file.filename, data)
@@ -41,6 +43,7 @@ async def check_resume(request: Request, file: UploadFile = File(...)):
                 return report.build_report(file.filename, [checks.scanned_pdf()])
             fitz_text = extractors.extract_pdf_pymupdf(data)
             layout_info = layout.analyze(data)
+            stats = extractors.pdf_stats(data)
             glued = checks.detect_glued(plumber_text, fitz_text)
             links = extractors.extract_pdf_links(data)
             extracted = extraction.extract_fields_rules(plumber_text, links=links)
@@ -52,6 +55,13 @@ async def check_resume(request: Request, file: UploadFile = File(...)):
                 checks.content_completeness(plumber_text, fitz_text, glued=glued),
                 checks.section_headers(plumber_text),
                 checks.contact_info(plumber_text),
+                checks.page_count(stats["page_count"]),
+                checks.resume_length(len(plumber_text.split())),
+                checks.font_count(stats["font_names"]),
+                checks.tiny_font(stats["tiny_char_fraction"]),
+                checks.images(stats["image_count"]),
+                checks.special_characters(plumber_text + fitz_text),
+                checks.margins(stats["edge_text"]),
                 checks.link_only_contact(extracted),
                 checks.header_footer_contact(layout.contact_in_margins(data)),
             ]
@@ -73,6 +83,7 @@ async def check_resume(request: Request, file: UploadFile = File(...)):
                 checks.content_completeness_single("DOCX"),
                 checks.section_headers(text),
                 checks.contact_info(text),
+                checks.resume_length(len(text.split())),
             ]
             best_text = text
         tips = checks.writing_tips(best_text)

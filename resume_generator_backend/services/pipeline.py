@@ -58,6 +58,7 @@ class ResumePipeline:
         custom_system_prompt: str | None = None,
         resume_template: str | None = None,
         template_format: str = "md",
+        ats_feedback: str | None = None,
         demo: bool = False,
     ) -> str:
         """Execute the full pipeline. Returns the generated resume content."""
@@ -94,6 +95,7 @@ class ResumePipeline:
             resume_template,
             linkedin_data=linkedin_data,
             job_description=job_description,
+            ats_feedback=ats_feedback,
         )
         user_prompt = await self._apply_middleware("prompt_build", user_prompt)
         await bus.publish(Events.PROMPT_BUILT, {"length": len(user_prompt)})
@@ -118,6 +120,7 @@ class ResumePipeline:
         custom_system_prompt: str | None = None,
         resume_template: str | None = None,
         template_format: str = "md",
+        ats_feedback: str | None = None,
         demo: bool = False,
     ):
         """Execute the pipeline with streaming generation. Yields tokens."""
@@ -156,6 +159,7 @@ class ResumePipeline:
             resume_template,
             linkedin_data=linkedin_data,
             job_description=job_description,
+            ats_feedback=ats_feedback,
         )
         user_prompt = await self._apply_middleware("prompt_build", user_prompt)
         await bus.publish(Events.PROMPT_BUILT, {"length": len(user_prompt)})

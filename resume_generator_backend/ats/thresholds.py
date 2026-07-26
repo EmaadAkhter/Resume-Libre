@@ -32,3 +32,22 @@ HEADER_BAND_FRACTION = 0.15  # ignore the top slice of each page (full-width hea
 # layout — margin-contact detection: the top/bottom page fraction treated as
 # the header/footer band that many ATS parsers skip.
 MARGIN_BAND_FRACTION = 0.08
+
+# page-count
+PAGE_WARN_COUNT = 2  # exactly 2 pages — acceptable for senior/academic profiles
+PAGE_FAIL_COUNT = 3  # 3+ pages — too long for almost every screening pipeline
+
+# resume-length (words in the extracted text)
+LENGTH_MIN_WORDS = 200  # below => too sparse
+LENGTH_MAX_WORDS = 900  # above => bloat / keyword stuffing
+
+# font-count
+MAX_FONT_NAMES = 4  # distinct embedded fonts before "font soup"
+
+# tiny-font
+TINY_FONT_PT = 8.5  # glyphs smaller than this are fine print
+TINY_FONT_WARN_FRACTION = 0.10  # warn when this share of characters is fine print
+
+# margins — a word whose bbox sits closer to a page edge than this fraction
+# of the page width/height risks being cropped by print-scan pipelines.
+EDGE_PROXIMITY_FRACTION = 0.015

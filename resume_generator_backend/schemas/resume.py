@@ -12,6 +12,9 @@ class ResumeRequest(BaseModel):
     custom_system_prompt: str | None = None
     resume_template: str | None = None
     template_format: Literal["md", "tex"] = "md"
+    # Parseability-check findings from the previous compile, fed back into
+    # the prompt so the model fixes them on regeneration.
+    ats_feedback: str | None = Field(None, max_length=4000)
 
 
 class AtsScoreRequest(BaseModel):
