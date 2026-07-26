@@ -33,6 +33,7 @@ Four containers (see `docker-compose.yml` / `docker-compose.prod.yml`):
 - **LaTeX-only pipeline** — the LLM emits a complete `\documentclass...\end{document}` document. No Markdown intermediate (removed; it produced weaker PDFs).
 - **Tectonic in a sidecar** — the LaTeX toolchain is heavy; isolating it keeps the API image slim and lets it be memory-capped independently (600 MB in prod).
 - **Frontend ↔ Supabase direct** for CRUD — RLS is the authorization layer; the backend only handles compute (LLM, PDF, parsing) and verifies JWTs for those.
+- **ATS checker in-process** — dual-extractor parseability checks are pure CPU, so they live in the main API (no ONNX, no sidecar); the free `/ats/check` endpoint doubles as the public top-of-funnel.
 - **Demo mode** — `DEMO_MODE=true` serves a canned LaTeX fixture (still compiled for real); `ALLOW_DEMO_REQUESTS=true` lets production serve the demo to anonymous visitors at zero LLM cost.
 - **Rate limits in Redis** — shared across uvicorn workers, survive restarts; keyed by user id when authenticated, IP otherwise.
 
@@ -42,7 +43,9 @@ Four containers (see `docker-compose.yml` / `docker-compose.prod.yml`):
 |---|---|
 | `resume_generator_backend/core/` | app factory, auth deps, limiter, logging |
 | `resume_generator_backend/routers/` | health, generation, export, debug (SSE event firehose) |
-| `resume_generator_backend/services/` | pipeline, prompt, LLM client, GitHub/LinkedIn fetchers, LaTeX compile client, Redis cache |
+| `resume_generator_backend/services/` | pipeline, prompt, LLM client, GitHub/LinkedIn fetchers, LaTeX compile client, ATS keyword score, Redis cache |
+| `resume_generator_backend/ats/` | parseability checker: dual extraction, 31 categorized checks, field extraction + LLM fallback, skills taxonomy |
+| `resume_generator_backend/scripts/` | ATS threshold calibration harness (PRD Section 6) |
 | `resume_generator_backend/fixtures/` | canned demo output |
 | `latex-service/` | 40-line FastAPI wrapper around the Tectonic binary |
 | `resume-generator-frontend/src/` | pages, components, hooks, lib (see its README) |
