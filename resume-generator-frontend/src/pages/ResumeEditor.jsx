@@ -114,14 +114,18 @@ export default function ResumeEditor({ user }) {
     loadResume()
   }, [loadResume])
 
-  const runAtsAnalysis = async (resumeText, jobDescription) => {
+  const runAtsAnalysis = async (resumeText, jobDescription, targetRole) => {
     setAtsLoading(true)
     setAtsError(null)
     try {
       const resp = await fetch(`${apiUrl}/analyze-ats`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
-        body: JSON.stringify({ resume_text: resumeText, job_description: jobDescription }),
+        body: JSON.stringify({
+          resume_text: resumeText,
+          job_description: jobDescription || null,
+          target_role: jobDescription ? null : targetRole || null,
+        }),
       })
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}))
@@ -142,6 +146,7 @@ export default function ResumeEditor({ user }) {
     params.priority ??= 'experience'
 
     const jobDescription = params.job_description?.trim() || ''
+    const targetRole = params.target_role || ''
 
     setLoading(true)
     setResumeContent('')
@@ -176,8 +181,8 @@ export default function ResumeEditor({ user }) {
             setResumeContent(full)
             compilePdf(full)
           }
-          if (jobDescription) {
-            runAtsAnalysis(full, jobDescription)
+          if (jobDescription || targetRole) {
+            runAtsAnalysis(full, jobDescription, targetRole)
           }
         },
         (err) => {

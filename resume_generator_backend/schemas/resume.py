@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class ResumeRequest(BaseModel):
@@ -16,7 +16,14 @@ class ResumeRequest(BaseModel):
 
 class AtsScoreRequest(BaseModel):
     resume_text: str = Field(min_length=100, max_length=60_000)
-    job_description: str = Field(min_length=30, max_length=30_000)
+    job_description: str | None = Field(None, min_length=30, max_length=30_000)
+    target_role: str | None = Field(None, max_length=60)
+
+    @model_validator(mode="after")
+    def _exactly_one_basis(self):
+        if bool(self.job_description) == bool(self.target_role):
+            raise ValueError("Provide exactly one of job_description or target_role")
+        return self
 
 
 class ResumeResponse(BaseModel):

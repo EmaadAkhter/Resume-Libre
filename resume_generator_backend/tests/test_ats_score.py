@@ -146,3 +146,42 @@ def test_requires_auth_without_demo(client):
 def test_short_job_description_rejected(client, auth_headers):
     response = _post(client, auth_headers, job_description="too short")
     assert response.status_code == 422
+
+
+def test_target_role_instead_of_jd(client, auth_headers):
+    with patch("services.ats_score._get_client") as mock_get_client:
+        mock_get_client.return_value = _mock_llm(json.dumps(VALID_PAYLOAD))
+        response = _post(
+            client,
+            auth_headers,
+            job_description=None,
+            target_role="Backend Developer",
+        )
+    assert response.status_code == 200
+    # role keywords must reach the prompt
+    sent = mock_get_client.return_value.chat.completions.create.call_args
+    assert "TARGET ROLE: Backend Developer" in sent.kwargs["messages"][1]["content"]
+
+
+def test_unknown_target_role_rejected(client, auth_headers):
+    response = _post(
+        client, auth_headers, job_description=None, target_role="Astronaut"
+    )
+    assert response.status_code == 422
+
+
+def test_both_jd_and_role_rejected(client, auth_headers):
+    response = _post(client, auth_headers, target_role="Backend Developer")
+    assert response.status_code == 422
+
+
+def test_neither_jd_nor_role_rejected(client, auth_headers):
+    response = _post(client, auth_headers, job_description=None)
+    assert response.status_code == 422
+
+
+def test_roles_endpoint_public(client):
+    response = client.get("/ats/roles")
+    assert response.status_code == 200
+    roles = response.json()["roles"]
+    assert "Backend Developer" in roles and len(roles) == 10
