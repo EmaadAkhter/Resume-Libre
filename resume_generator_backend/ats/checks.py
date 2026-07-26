@@ -12,15 +12,16 @@ from ats.extraction import (
     EMAIL_RE as _EMAIL_RE,
 )
 from ats.extraction import (
-    HEADER_RE as _HEADER_RE,
+    PHONE_CANDIDATE_RE as _PHONE_CANDIDATE_RE,
 )
 from ats.extraction import (
-    PHONE_CANDIDATE_RE as _PHONE_CANDIDATE_RE,
+    find_sections as _find_sections,
 )
 from ats.thresholds import (
     AGREEMENT_PASS,
     AGREEMENT_WARN,
     COMPLETENESS_PASS,
+    GLUED_DENSITY_RATIO,
     MIN_SECTION_HEADERS,
 )
 
@@ -52,7 +53,26 @@ def scanned_pdf():
     )
 
 
-def extraction_agreement(text_a, text_b):
+def _word_space_density(text):
+    """Words per non-space character — near-zero when spaces are missing."""
+    normalized = _normalize(text)
+    chars = len(normalized.replace(" ", ""))
+    return len(normalized.split()) / chars if chars else 0.0
+
+
+def detect_glued(text_a, text_b):
+    """True when one extractor sees far fewer word breaks than the other,
+    i.e. it reads the same characters as glued-together words. Called by the
+    router and passed into extraction_agreement / content_completeness so
+    both explain the shared root cause instead of their generic symptoms."""
+    density_a = _word_space_density(text_a)
+    density_b = _word_space_density(text_b)
+    if max(density_a, density_b) == 0:
+        return False
+    return min(density_a, density_b) < GLUED_DENSITY_RATIO * max(density_a, density_b)
+
+
+def extraction_agreement(text_a, text_b, glued=False):
     ratio = difflib.SequenceMatcher(
         None, _normalize(text_a), _normalize(text_b)
     ).ratio()
@@ -62,6 +82,19 @@ def extraction_agreement(text_a, text_b):
         status = "warn"
     else:
         status = "fail"
+    if glued and status != "pass":
+        words_a = len(_normalize(text_a).split())
+        words_b = len(_normalize(text_b).split())
+        return _check(
+            "extraction-agreement",
+            status,
+            "One extractor reads your text without word spacing — "
+            f"{min(words_a, words_b)} words vs {max(words_a, words_b)} words "
+            "from the same characters; usually a font/kerning or design-tool "
+            "export issue.",
+            "Re-export from a standard word processor or LaTeX with a "
+            "standard font; avoid design-tool PDF exports.",
+        )
     return _check(
         "extraction-agreement",
         status,
@@ -140,12 +173,21 @@ def encoding_sanity(text):
     )
 
 
-def content_completeness(text_a, text_b):
+def content_completeness(text_a, text_b, glued=False):
     set_a = set(_normalize(text_a).split())
     set_b = set(_normalize(text_b).split())
     union = set_a | set_b
     jaccard = len(set_a & set_b) / len(union) if union else 1.0
     status = "pass" if jaccard >= COMPLETENESS_PASS else "warn"
+    if glued and status == "warn":
+        return _check(
+            "content-completeness",
+            "warn",
+            f"Word-set overlap is low ({jaccard:.2f}) because of the "
+            "word-spacing issue above — fix that first.",
+            "Re-export from a standard word processor or LaTeX with a "
+            "standard font; avoid design-tool PDF exports.",
+        )
     return _check(
         "content-completeness",
         status,
@@ -168,7 +210,7 @@ def content_completeness_single(fmt):
 
 
 def section_headers(text):
-    found = sorted({m.group(1).lower() for m in _HEADER_RE.finditer(text)})
+    found = _find_sections(text)
     if len(found) >= MIN_SECTION_HEADERS:
         return _check(
             "section-headers",
@@ -180,8 +222,8 @@ def section_headers(text):
         "section-headers",
         "warn",
         "Fewer than two standard section headers (Experience, Education, "
-        "Skills, Projects, Summary) were found; standard section names help "
-        "ATS categorize your content.",
+        "Skills, Projects, Summary, Certifications — or common synonyms) "
+        "were found; standard section names help ATS categorize your content.",
         "Rename custom headings to conventional ones like 'Experience' and "
         "'Education'.",
     )
@@ -218,3 +260,94 @@ def contact_info(text):
         "Add plain-text contact details near the top (not inside an image, "
         "header graphic, or icon font).",
     )
+
+
+# Contact fields the link-annotation fallback in ats.extraction can fill.
+_LINKABLE_FIELDS = ("email", "linkedin", "github")
+
+
+def link_only_contact(fields):
+    """Warn when contact info exists only as a PDF link annotation.
+
+    Contract with ats.extraction: email/linkedin/github are method="regex"
+    when read from visible text; method="heuristic" on these fields can only
+    mean the value was recovered from a link annotation (see
+    _fill_from_links), i.e. it is invisible to text-only parsers.
+    """
+    link_only = [
+        field
+        for field in _LINKABLE_FIELDS
+        if fields[field].method == "heuristic" and fields[field].value is not None
+    ]
+    if not link_only:
+        return _check(
+            "link-only-contact",
+            "pass",
+            "No contact details rely solely on clickable link annotations.",
+            "No action needed.",
+        )
+    return _check(
+        "link-only-contact",
+        "warn",
+        f"These contact details exist only as clickable link annotations, "
+        f"not as visible text: {', '.join(link_only)}.",
+        "Spell the URL out as visible text — many ATS only read text, not "
+        "link annotations.",
+    )
+
+
+def header_footer_contact(in_margins):
+    if in_margins:
+        return _check(
+            "header-footer-contact",
+            "fail",
+            "Contact info lives in the page header/footer — many parsers "
+            "skip those regions.",
+            "Move email/phone into the document body, near the top of page 1.",
+        )
+    return _check(
+        "header-footer-contact",
+        "pass",
+        "Contact info is in the document body, not the page margins.",
+        "No action needed.",
+    )
+
+
+_WEAK_PHRASES = (
+    "worked on",
+    "helped with",
+    "assisted in",
+    "responsible for",
+    "tasked with",
+)
+_SNIPPET_MAX_CHARS = 60
+_MAX_SNIPPETS = 3
+
+
+def writing_tips(text):
+    """Informational-only writing suggestions; None when nothing matched.
+
+    Never counted as a failure: status is "info" and the dict carries
+    informational=True, which report.build_report excludes from the summary.
+    """
+    snippets = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if any(phrase in stripped.lower() for phrase in _WEAK_PHRASES):
+            if len(stripped) > _SNIPPET_MAX_CHARS:
+                stripped = stripped[:_SNIPPET_MAX_CHARS].rstrip() + "…"
+            snippets.append(f'"{stripped}"')
+            if len(snippets) == _MAX_SNIPPETS:
+                break
+    if not snippets:
+        return None
+    check = _check(
+        "writing-tips",
+        "info",
+        "Some lines lead with passive phrasing that undersells your work: "
+        f"{'; '.join(snippets)}.",
+        "Start bullets with power verbs like developed, implemented, "
+        "designed, optimized, built, led, automated, reduced, increased.",
+    )
+    check["informational"] = True
+    return check

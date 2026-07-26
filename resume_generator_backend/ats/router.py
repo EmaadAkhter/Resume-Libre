@@ -33,21 +33,30 @@ async def check_resume(request: Request, file: UploadFile = File(...)):
                 return report.build_report(file.filename, [checks.scanned_pdf()])
             fitz_text = extractors.extract_pdf_pymupdf(data)
             layout_info = layout.analyze(data)
+            glued = checks.detect_glued(plumber_text, fitz_text)
+            links = extractors.extract_pdf_links(data)
+            extracted = extraction.extract_fields_rules(plumber_text, links=links)
             results = [
-                checks.extraction_agreement(plumber_text, fitz_text),
+                checks.extraction_agreement(plumber_text, fitz_text, glued=glued),
                 checks.columns(layout_info["max_columns"]),
                 checks.tables(layout_info["table_count"]),
                 checks.encoding_sanity(plumber_text + fitz_text),
-                checks.content_completeness(plumber_text, fitz_text),
+                checks.content_completeness(plumber_text, fitz_text, glued=glued),
                 checks.section_headers(plumber_text),
                 checks.contact_info(plumber_text),
+                checks.link_only_contact(extracted),
+                checks.header_footer_contact(layout.contact_in_margins(data)),
             ]
             best_text = plumber_text
         else:
             # ponytail: DOCX layout inspection is shallow — python-docx sees
             # tables but not multi-column section formatting. Upgrade path:
             # parse w:cols in the document XML.
+            # DOCX has no link annotations or page margins to inspect, so
+            # the link-only-contact and header-footer-contact checks are
+            # PDF-only.
             text, table_count = extractors.extract_docx(data)
+            extracted = extraction.extract_fields_rules(text)
             results = [
                 checks.extraction_agreement_single("DOCX"),
                 checks.columns(1),
@@ -58,6 +67,9 @@ async def check_resume(request: Request, file: UploadFile = File(...)):
                 checks.contact_info(text),
             ]
             best_text = text
+        tips = checks.writing_tips(best_text)
+        if tips is not None:
+            results.append(tips)
     except HTTPException:
         raise
     except Exception:
@@ -67,7 +79,6 @@ async def check_resume(request: Request, file: UploadFile = File(...)):
             "password-protected.",
         )
 
-    extracted = extraction.extract_fields_rules(best_text)
     return report.build_report(file.filename, results, extracted)
 
 
@@ -81,6 +92,7 @@ async def extract_fields(
     data = await file.read()
     kind = input_handler.validate_upload(file.filename, data)
 
+    links = None
     try:
         if kind == "pdf":
             # Same best-text choice as /ats/check: pdfplumber's extraction.
@@ -92,6 +104,9 @@ async def extract_fields(
                     "scan or photo export. AI field extraction needs real text; "
                     "export a text-based PDF from your editor.",
                 )
+            # Same link-annotation fallback as /ats/check, so the AI resolve
+            # pass never erases a link-recovered contact field client-side.
+            links = extractors.extract_pdf_links(data)
         else:
             text, _ = extractors.extract_docx(data)
     except HTTPException:
@@ -103,7 +118,7 @@ async def extract_fields(
             "password-protected.",
         )
 
-    rules = extraction.extract_fields_rules(text)
+    rules = extraction.extract_fields_rules(text, links=links)
     resolved = await resolve_low_confidence(text, rules, demo=user.get("demo", False))
     return {
         "filename": file.filename,
