@@ -6,8 +6,8 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from core.limiter import limiter
-from services.events import bus
 from core.logging import EventLoggingSubscriber, RequestResponseMiddleware
+from services.events import bus
 
 
 def create_app() -> FastAPI:
@@ -41,8 +41,8 @@ def create_app() -> FastAPI:
     EventLoggingSubscriber.register(bus)
 
     # ─── Include routers ────────────────────────────────
-    from routers import health, generation, export, debug
     from ats.router import router as ats_router
+    from routers import debug, export, generation, health
 
     app.include_router(health.router)
     app.include_router(generation.router)

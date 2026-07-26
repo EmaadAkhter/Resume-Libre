@@ -17,6 +17,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/ruff-action@v3
+        with:
+          version: "0.16.0" # pinned — rolling ruff versions kept breaking main
       - run: ruff check .
       - run: ruff format --check .
 

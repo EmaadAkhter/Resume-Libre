@@ -50,8 +50,8 @@ def build_user_prompt(
     readme_content: str,
     additional_info: str,
     priority: str,
-    resume_template: str = None,
-    linkedin_data: dict = None,
+    resume_template: str | None = None,
+    linkedin_data: dict | None = None,
     job_description: str = "",
 ) -> str:
     contact = extract_contact_info(additional_info + " " + readme_content)

@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock, patch
+
 import pytest
 from fastapi import HTTPException
 
@@ -13,8 +14,9 @@ def test_verify_jwt_valid(mock_get_client):
     mock_user.email = "test@test.com"
     mock_client.auth.get_user.return_value = MagicMock(user=mock_user)
 
-    from core.deps import verify_jwt
     from fastapi.security import HTTPAuthorizationCredentials
+
+    from core.deps import verify_jwt
 
     credentials = HTTPAuthorizationCredentials(
         scheme="Bearer", credentials="valid-token"
@@ -33,8 +35,9 @@ def test_verify_jwt_invalid(mock_get_client):
     mock_get_client.return_value = mock_client
     mock_client.auth.get_user.return_value = MagicMock(user=None)
 
-    from core.deps import verify_jwt
     from fastapi.security import HTTPAuthorizationCredentials
+
+    from core.deps import verify_jwt
 
     credentials = HTTPAuthorizationCredentials(
         scheme="Bearer", credentials="invalid-token"
@@ -55,8 +58,9 @@ def test_require_admin_passes(mock_get_client):
         "role": "admin"
     }
 
-    from core.deps import require_admin
     import asyncio
+
+    from core.deps import require_admin
 
     user = {"id": "admin-123", "email": "admin@test.com", "role": "admin"}
     result = asyncio.run(require_admin(user))
@@ -71,8 +75,9 @@ def test_require_admin_fails_for_non_admin(mock_get_client):
         "role": "user"
     }
 
-    from core.deps import require_admin
     import asyncio
+
+    from core.deps import require_admin
 
     user = {"id": "user-123", "email": "user@test.com", "role": "user"}
     with pytest.raises(HTTPException) as exc_info:

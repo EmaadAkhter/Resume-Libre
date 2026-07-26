@@ -1,4 +1,5 @@
 import pytest
+
 from services.pipeline import ResumePipeline
 
 

@@ -1,4 +1,4 @@
-from services.prompt import extract_contact_info, build_user_prompt
+from services.prompt import build_user_prompt, extract_contact_info
 
 
 def test_extract_contact_info_finds_email():

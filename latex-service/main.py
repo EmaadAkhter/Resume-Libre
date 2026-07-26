@@ -24,6 +24,7 @@ def compile(req: CompileRequest) -> Response:
             capture_output=True,
             text=True,
             timeout=300,
+            check=False,  # non-zero exit handled via pdf-exists check below
         )
 
         pdf_path = Path(tmpdir) / "resume.pdf"

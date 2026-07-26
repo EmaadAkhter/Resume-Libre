@@ -1,14 +1,15 @@
-import time
 import logging
+import time
+from collections.abc import Callable
 from datetime import datetime
-from typing import Any, Callable
+from typing import Any
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
-from services.events import bus
 from core.event_types import Events
+from services.events import bus
 
 logger = logging.getLogger("resume_libre")
 logging.basicConfig(

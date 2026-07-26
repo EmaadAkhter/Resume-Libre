@@ -47,7 +47,9 @@ async def _fetch_from_apify(profile_url: str, token: str) -> dict:
             json={"profiles": [profile_url]},
         )
         if resp.status_code not in (200, 201):
-            logger.info(f"Apify run start failed: {resp.status_code} - {resp.text[:200]}")
+            logger.info(
+                f"Apify run start failed: {resp.status_code} - {resp.text[:200]}"
+            )
             return {}
 
         run_data = resp.json().get("data", {})
@@ -82,7 +84,9 @@ async def _fetch_from_apify(profile_url: str, token: str) -> dict:
         )
         if items_resp.status_code == 200:
             items = items_resp.json()
-            logger.info(f"Apify: got {len(items) if isinstance(items, list) else 0} items")
+            logger.info(
+                f"Apify: got {len(items) if isinstance(items, list) else 0} items"
+            )
             if (
                 isinstance(items, list)
                 and items

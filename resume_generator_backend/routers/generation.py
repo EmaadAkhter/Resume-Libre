@@ -1,19 +1,17 @@
 import io
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File, Query
-from fastapi.responses import StreamingResponse
-from typing import Optional
-
-import pypdf
 import docx
+import pypdf
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
+from fastapi.responses import StreamingResponse
 
 from core.deps import require_user_or_demo
+from core.event_types import Events
 from core.limiter import limiter
 from schemas.resume import ResumeRequest, ResumeResponse
-from services.pipeline import pipeline
-from core.event_types import Events
 from services.events import bus
+from services.pipeline import pipeline
 
 router = APIRouter(tags=["generation"])
 
@@ -50,22 +48,20 @@ async def create_resume(
         raise
     except Exception as e:
         await bus.publish(Events.VALIDATION_FAILED, {"error": str(e)[:200]})
-        raise HTTPException(
-            status_code=500, detail=f"Failed to generate resume: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to generate resume: {e!s}")
 
 
 @router.get("/generate-resume-stream")
 @limiter.limit("10/hour")
 async def stream_resume_generation(
     request: Request,
-    github_username: Optional[str] = Query(None),
-    linkedin_url: Optional[str] = Query(None),
-    additional_info: Optional[str] = Query(None),
-    job_description: Optional[str] = Query(None),
+    github_username: str | None = Query(None),
+    linkedin_url: str | None = Query(None),
+    additional_info: str | None = Query(None),
+    job_description: str | None = Query(None),
     priority: str = Query("experience"),
-    custom_system_prompt: Optional[str] = Query(None),
-    resume_template: Optional[str] = Query(None),
+    custom_system_prompt: str | None = Query(None),
+    resume_template: str | None = Query(None),
     template_format: str = Query("tex"),
     user: dict = Depends(require_user_or_demo),
 ):
@@ -148,4 +144,4 @@ async def extract_resume(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to extract text: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to extract text: {e!s}")

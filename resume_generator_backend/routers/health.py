@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
 
 from core.deps import is_demo_mode
-from services.genrate_resume import load_system_prompt
 from schemas.export import SystemPromptResponse
+from services.genrate_resume import load_system_prompt
 
 router = APIRouter(tags=["health"])
 
@@ -36,5 +36,5 @@ async def get_system_prompt():
         return SystemPromptResponse(prompt=prompt, status="success")
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Failed to load system prompt: {str(e)}"
+            status_code=500, detail=f"Failed to load system prompt: {e!s}"
         )

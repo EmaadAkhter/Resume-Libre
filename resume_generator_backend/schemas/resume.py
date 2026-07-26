@@ -1,15 +1,16 @@
+from typing import Literal
+
 from pydantic import BaseModel
-from typing import Optional, Literal
 
 
 class ResumeRequest(BaseModel):
-    github_username: Optional[str] = None
-    linkedin_url: Optional[str] = None
-    additional_info: Optional[str] = None
-    job_description: Optional[str] = None
+    github_username: str | None = None
+    linkedin_url: str | None = None
+    additional_info: str | None = None
+    job_description: str | None = None
     priority: Literal["experience", "projects", "balanced"] = "experience"
-    custom_system_prompt: Optional[str] = None
-    resume_template: Optional[str] = None
+    custom_system_prompt: str | None = None
+    resume_template: str | None = None
     template_format: Literal["md", "tex"] = "md"
 
 
@@ -20,21 +21,21 @@ class ResumeResponse(BaseModel):
 
 class CreateResumeRequest(BaseModel):
     name: str
-    template_id: Optional[str] = None
+    template_id: str | None = None
 
 
 class CommitVersionRequest(BaseModel):
     content: str
     branch_name: str = "main"
     message: str = ""
-    latex_content: Optional[str] = None
-    generation_prompt: Optional[str] = None
-    template_id: Optional[str] = None
+    latex_content: str | None = None
+    generation_prompt: str | None = None
+    template_id: str | None = None
 
 
 class CreateBranchRequest(BaseModel):
     name: str
-    from_version_id: Optional[str] = None
+    from_version_id: str | None = None
 
 
 class MergeBranchRequest(BaseModel):

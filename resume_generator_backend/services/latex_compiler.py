@@ -75,7 +75,7 @@ def md_to_latex(markdown: str) -> str:
             text = _md_inline_to_latex(line[3:])
             latex.append(f"\\section*{{{text}}}")
 
-        elif line.startswith("- ") or line.startswith("* "):
+        elif line.startswith(("- ", "* ")):
             if not in_itemize:
                 latex.append("\\begin{itemize}[leftmargin=*,nosep]")
                 in_itemize = True

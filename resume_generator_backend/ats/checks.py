@@ -125,8 +125,7 @@ def encoding_sanity(text):
         return _check(
             "encoding-sanity",
             "pass",
-            "No replacement characters or private-use glyphs in the extracted "
-            "text.",
+            "No replacement characters or private-use glyphs in the extracted text.",
             "No action needed.",
         )
     return _check(
@@ -213,8 +212,7 @@ def contact_info(text):
     return _check(
         "contact-info",
         "fail",
-        "Neither an email address nor a phone number was found in the "
-        "extracted text.",
+        "Neither an email address nor a phone number was found in the extracted text.",
         "Add plain-text contact details near the top (not inside an image, "
         "header graphic, or icon font).",
     )

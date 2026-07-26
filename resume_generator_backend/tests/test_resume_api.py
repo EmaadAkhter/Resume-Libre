@@ -1,5 +1,6 @@
-from fastapi.testclient import TestClient
 from unittest.mock import patch
+
+from fastapi.testclient import TestClient
 
 
 @patch("services.auth.get_supabase_client")
@@ -73,5 +74,3 @@ def test_export_resume_invalid_format(mock_get_client, monkeypatch):
         "/export-resume", json={"markdown_content": "# Test", "format": "invalid"}
     )
     assert response.status_code == 422  # Pydantic validation error
-
-

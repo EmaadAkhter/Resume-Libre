@@ -1,11 +1,12 @@
+from typing import Literal
+
 from pydantic import BaseModel
-from typing import Optional, Literal
 
 
 class ExportRequest(BaseModel):
     markdown_content: str
     format: Literal["latex", "latex_pdf"] = "latex_pdf"
-    latex_content: Optional[str] = None
+    latex_content: str | None = None
 
 
 class SystemPromptResponse(BaseModel):
