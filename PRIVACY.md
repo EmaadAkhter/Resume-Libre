@@ -15,6 +15,7 @@ Resume-Libre handles documents that contain personal information — names, cont
 | GitHub username / README you point us at | Cached up to 1 hour | Redis | Avoid refetching |
 | LinkedIn profile data (scraped or pasted) | Cached up to 24 hours | Redis | Avoid re-scraping |
 | Generation metadata (timestamp, model, token counts, duration) | Yes | Server logs | Debugging, cost tracking |
+| Published resume (explicit opt-in via the Publish button) | Yes, world-readable until you unpublish | Supabase public storage | Your shareable /r/ link |
 
 ## What we never do
 
