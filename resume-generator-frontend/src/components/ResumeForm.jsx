@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FileText, Settings, Sparkles, Upload } from 'lucide-react'
+import { FileText, Sparkles, Upload } from 'lucide-react'
 import TemplatePicker from './TemplatePicker'
 import { eventBus } from '../lib/eventBus'
 import { EVENTS } from '../lib/eventTypes'
@@ -13,6 +13,7 @@ export default function ResumeForm({
   selectedTemplate,
   onSelectTemplate,
   user,
+  customSystemPrompt = null,
 }) {
   const [githubUsername, setGithubUsername] = useState('')
   const [linkedinUrl, setLinkedinUrl] = useState('')
@@ -25,8 +26,6 @@ export default function ResumeForm({
   const [uploadedResumeText, setUploadedResumeText] = useState(null)
   const [useAsTemplate, setUseAsTemplate] = useState(false)
   const [useAsData, setUseAsData] = useState(true)
-  const [customSystemPrompt, setCustomSystemPrompt] = useState(null)
-  const [onOpenSystemPrompt, setOnOpenSystemPrompt] = useState(null)
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 

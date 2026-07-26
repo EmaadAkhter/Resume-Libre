@@ -24,6 +24,9 @@ export default [
       'react/jsx-uses-react': 'off',
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
+      // marks components referenced in JSX as used — without this every
+      // component import is a false "unused var" warning
+      'react/jsx-uses-vars': 'error',
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     },
     settings: {

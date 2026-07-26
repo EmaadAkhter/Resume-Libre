@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { GitCommit, Tag, Clock, Eye } from 'lucide-react'
+import { GitCommit, Tag, Clock } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 export default function VersionHistory({ resumeId, user, onViewVersion }) {

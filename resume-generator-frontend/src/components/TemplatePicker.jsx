@@ -1,6 +1,5 @@
-import { FileText, FileCode, Lock } from 'lucide-react'
 
-export default function TemplatePicker({ templates, selected, onSelect, user }) {
+export default function TemplatePicker({ templates, selected, onSelect, user: _user }) {
   return (
     <select
       value={selected?.id || ''}

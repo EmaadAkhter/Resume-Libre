@@ -8,6 +8,12 @@ updates:
     directory: /resume-generator-frontend
     schedule:
       interval: weekly
+    ignore:
+      # eslint-plugin-react peer-caps at eslint ^9 — unblock when it supports 10
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: docker
     directories:
       - /resume_generator_backend
