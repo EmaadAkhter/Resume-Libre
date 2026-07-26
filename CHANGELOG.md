@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **License changed from MIT to AGPL-3.0.** All code from this point forward is licensed under AGPL-3.0. Code published up to and including commit `dee7144` remains available under the MIT license.
+
 ### Added
 - Vite build tool (replacing Create React App)
 - Supabase authentication (email/password with JWT)
