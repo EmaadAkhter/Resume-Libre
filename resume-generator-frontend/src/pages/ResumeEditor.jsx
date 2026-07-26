@@ -15,6 +15,7 @@ import SystemPromptModal from '../components/SystemPromptModal'
 import VersionHistory from '../components/VersionHistory'
 import BranchManager from '../components/BranchManager'
 import ATSScore from '../components/ATSScore'
+import AtsReport from '../components/ats/AtsReport'
 import LoadingScreen from '../components/LoadingScreen'
 
 export default function ResumeEditor({ user }) {
@@ -38,6 +39,7 @@ export default function ResumeEditor({ user }) {
   const [atsScore, setAtsScore] = useState(null)
   const [atsLoading, setAtsLoading] = useState(false)
   const [atsError, setAtsError] = useState(null)
+  const [parseReport, setParseReport] = useState(null)
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -58,10 +60,29 @@ export default function ResumeEditor({ user }) {
       const blob = await resp.blob()
       if (pdfUrl) URL.revokeObjectURL(pdfUrl)
       setPdfUrl(URL.createObjectURL(blob))
+      runParseabilityCheck(blob)
     } catch (err) {
       eventBus.emit(EVENTS.NOTIFICATION_SHOW, { type: 'error', message: err.message })
     } finally {
       setCompilingPdf(false)
+    }
+  }
+
+  // Free deterministic check of the freshly compiled PDF — the same
+  // /ats/check the public page uses. Auth header only improves the
+  // rate-limit bucketing; failures are silent (nice-to-have panel).
+  const runParseabilityCheck = async (blob) => {
+    try {
+      const formData = new FormData()
+      formData.append('file', new File([blob], 'resume.pdf', { type: 'application/pdf' }))
+      const resp = await fetch(`${apiUrl}/ats/check`, {
+        method: 'POST',
+        headers: await authHeaders(),
+        body: formData,
+      })
+      if (resp.ok) setParseReport(await resp.json())
+    } catch {
+      /* non-fatal */
     }
   }
 
@@ -153,6 +174,7 @@ export default function ResumeEditor({ user }) {
     setResumeContent('')
     setPdfUrl(null)
     setAtsScore(null)
+    setParseReport(null)
     setAtsError(null)
 
     try {
@@ -399,6 +421,21 @@ export default function ResumeEditor({ user }) {
             <div className="mt-4">
               <ATSScore result={atsScore} loading={atsLoading} error={atsError} />
             </div>
+          )}
+          {parseReport && (
+            <details className="mt-4 bg-white border border-gray-200 rounded-xl p-4 group">
+              <summary className="cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-semibold text-gray-900">Parseability</h3>
+                  <span className="text-xs text-gray-400 group-open:hidden">expand</span>
+                  <span className="text-xs text-gray-400 hidden group-open:inline">collapse</span>
+                </div>
+                <AtsReport report={parseReport} compact />
+              </summary>
+              <div className="mt-3 border-t border-gray-100 pt-3">
+                <AtsReport report={parseReport} />
+              </div>
+            </details>
           )}
         </div>
 

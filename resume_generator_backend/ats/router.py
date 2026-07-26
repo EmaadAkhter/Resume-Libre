@@ -29,7 +29,7 @@ async def list_roles():
 
 
 @router.post("/check")
-@limiter.limit("5/hour")
+@limiter.limit("30/hour")  # pure CPU; generous so the editor's auto-check per compile fits
 async def check_resume(request: Request, file: UploadFile = File(...)):
     data = await file.read()
     kind = input_handler.validate_upload(file.filename, data)
