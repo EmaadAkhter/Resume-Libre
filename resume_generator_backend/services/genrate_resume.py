@@ -1,8 +1,12 @@
+import logging
 import os
 import re
+import time
 from typing import Optional
 from openai import OpenAI
 from fastapi import HTTPException
+
+logger = logging.getLogger("resume_libre")
 
 
 def load_system_prompt() -> str:
@@ -60,6 +64,7 @@ async def generate_resume_content(
     client = _get_client()
     model = _get_model()
 
+    started = time.monotonic()
     try:
         completion = client.chat.completions.create(
             model=model,
@@ -73,6 +78,15 @@ async def generate_resume_content(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
+
+    usage = getattr(completion, "usage", None)
+    logger.info(
+        "generation model=%s duration=%.1fs prompt_tokens=%s completion_tokens=%s",
+        model,
+        time.monotonic() - started,
+        getattr(usage, "prompt_tokens", None),
+        getattr(usage, "completion_tokens", None),
+    )
 
     resume = completion.choices[0].message.content or ""
 
@@ -118,12 +132,14 @@ async def generate_resume_stream(
     client = _get_client()
     model = _get_model()
 
+    started = time.monotonic()
     try:
         stream = client.chat.completions.create(
             model=model,
             max_tokens=8000,
             temperature=0.1,
             stream=True,
+            stream_options={"include_usage": True},
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
@@ -134,12 +150,23 @@ async def generate_resume_stream(
         raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
 
     full_content = ""
+    usage = None
 
     for chunk in stream:
+        if getattr(chunk, "usage", None):
+            usage = chunk.usage
         if chunk.choices and chunk.choices[0].delta.content:
             token = chunk.choices[0].delta.content
             full_content += token
             yield token
+
+    logger.info(
+        "generation model=%s streaming=true duration=%.1fs prompt_tokens=%s completion_tokens=%s",
+        model,
+        time.monotonic() - started,
+        getattr(usage, "prompt_tokens", None),
+        getattr(usage, "completion_tokens", None),
+    )
 
     full_content = (
         re.sub(r"^```[a-z]*\n?", "", full_content.strip()).rstrip("`").strip()

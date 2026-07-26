@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
@@ -14,15 +16,18 @@ def create_app() -> FastAPI:
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
     # ─── CORS ────────────────────────────────────────────
+    # Comma-separated production origins via ALLOWED_ORIGINS,
+    # e.g. ALLOWED_ORIGINS=https://resumelibre.com
+    default_origins = (
+        "http://localhost:3000,http://localhost:3001,"
+        "http://localhost:3002,http://localhost:5173"
+    )
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[
-            "http://localhost:3000",
-            "http://localhost:3001",
-            "http://localhost:3002",
-            "http://localhost:5173",
-            "https://resume-libre.vercel.app",
-            "https://resume-libre-emaadansaris-projects.vercel.app",
+            o.strip()
+            for o in os.getenv("ALLOWED_ORIGINS", default_origins).split(",")
+            if o.strip()
         ],
         allow_credentials=True,
         allow_methods=["*"],

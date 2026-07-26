@@ -1,6 +1,10 @@
+import logging
+
 import httpx
 
 from services.cache import get_redis
+
+logger = logging.getLogger("resume_libre")
 
 
 async def fetch_github_readme(username: str) -> str:
@@ -35,8 +39,8 @@ async def _fetch_from_github(username: str) -> str:
         if response.status_code == 200:
             return response.text
         else:
-            print(f"GitHub README fetch failed: {response.status_code}")
+            logger.warning(f"GitHub README fetch failed: {response.status_code}")
             return ""
     except Exception as e:
-        print(f"GitHub README fetch error: {e}")
+        logger.warning(f"GitHub README fetch error: {e}")
         return ""
