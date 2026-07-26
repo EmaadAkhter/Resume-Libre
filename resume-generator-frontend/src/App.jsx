@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { useSupabaseAuth } from './hooks/useSupabaseAuth'
 import Landing from './pages/Landing'
 import Demo from './pages/Demo'
@@ -40,40 +40,24 @@ export default function App() {
           path="/register"
           element={user ? <Navigate to="/dashboard" replace /> : <Register register={register} />}
         />
+        {/* One persistent shell for all signed-in pages — a layout route
+            keeps the sidebar mounted across navigation (no re-probe flicker) */}
         <Route
-          path="/dashboard"
           element={
             <ProtectedRoute user={user} loading={loading}>
               <AppShell user={user} profile={profile} logout={logout}>
-                <Dashboard user={user} />
+                <Outlet />
               </AppShell>
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/resume/:resumeId"
-          element={
-            <ProtectedRoute user={user} loading={loading}>
-              <AppShell user={user} profile={profile} logout={logout}>
-                <ResumeEditor user={user} />
-              </AppShell>
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route path="/dashboard" element={<Dashboard user={user} />} />
+          <Route path="/resume/:resumeId" element={<ResumeEditor user={user} />} />
+          {user && <Route path="/ats-check" element={<AtsCheck inShell />} />}
+        </Route>
         <Route path="/demo" element={<Demo />} />
         <Route path="/r/:userId" element={<PublicResume />} />
-        <Route
-          path="/ats-check"
-          element={
-            user ? (
-              <AppShell user={user} profile={profile} logout={logout}>
-                <AtsCheck inShell />
-              </AppShell>
-            ) : (
-              <AtsCheck />
-            )
-          }
-        />
+        {!user && <Route path="/ats-check" element={<AtsCheck />} />}
         <Route
           path="/"
           element={user ? <Navigate to="/dashboard" replace /> : <Landing />}
