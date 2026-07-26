@@ -56,7 +56,10 @@ async def check_resume(request: Request, file: UploadFile = File(...)):
                 checks.section_headers(plumber_text),
                 checks.contact_info(plumber_text),
                 checks.page_count(stats["page_count"]),
-                checks.resume_length(len(plumber_text.split())),
+                # max of both extractions — glued-word extractions undercount
+                checks.resume_length(
+                    max(len(plumber_text.split()), len(fitz_text.split()))
+                ),
                 checks.font_count(stats["font_names"]),
                 checks.tiny_font(stats["tiny_char_fraction"]),
                 checks.images(stats["image_count"]),

@@ -384,3 +384,15 @@ def test_stream_endpoint_accepts_ats_feedback_in_demo_mode(monkeypatch):
     assert resp.status_code == 200
     assert "text/event-stream" in resp.headers["content-type"]
     assert "data:" in resp.text
+
+
+def test_resume_length_uses_best_extraction():
+    # Glued pdfplumber output must not undercount words — the router takes
+    # the max of both extractions. Unit-level equivalent:
+    from ats.checks import resume_length
+
+    glued_words = 126
+    real_words = 500
+    check = resume_length(max(glued_words, real_words))
+    assert check["status"] == "pass"
+    assert check["metric"]["value"] == real_words
