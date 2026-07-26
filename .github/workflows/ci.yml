@@ -15,7 +15,7 @@ jobs:
       run:
         working-directory: resume_generator_backend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: astral-sh/ruff-action@v3
         with:
           version: "0.16.0" # pinned — rolling ruff versions kept breaking main
@@ -29,7 +29,7 @@ jobs:
       run:
         working-directory: resume_generator_backend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
@@ -44,7 +44,7 @@ jobs:
       run:
         working-directory: resume-generator-frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: "20"
@@ -60,7 +60,7 @@ jobs:
       run:
         working-directory: resume-generator-frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: "20"
@@ -76,7 +76,7 @@ jobs:
       run:
         working-directory: resume-generator-frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: "20"
