@@ -170,7 +170,7 @@ def test_endpoint_docx_gets_resume_length_check(client):
     check = check_by_id(resp.json(), "resume-length")
     assert check is not None
     assert check["metric"]["kind"] == "band"
-    # DOCX path adds only resume-length from the new battery
+    # page-count is PDF-only; DOCX has no fixed pagination to measure
     assert check_by_id(resp.json(), "page-count") is None
 
 
@@ -344,6 +344,123 @@ def test_checks_without_metric_omit_the_key(client):
     body = post_pdf(client, pdf).json()
     assert "metric" not in check_by_id(body, "columns")
     assert "metric" not in check_by_id(body, "contact-info")
+
+
+# ── encrypted-pdf (v2) ───────────────────────────────────────────────
+
+
+def test_endpoint_owner_password_pdf_fails_encrypted_check(client):
+    """Owner-password AES PDFs open with the empty user password, so the
+    battery still runs — and must call out the protection."""
+    doc = fitz.open()
+    page = doc.new_page()
+    page.insert_textbox(fitz.Rect(72, 72, 523, 770), BODY_TEXT, fontsize=10)
+    data = doc.tobytes(encryption=fitz.PDF_ENCRYPT_AES_256, owner_pw="secret123")
+    doc.close()
+    resp = post_pdf(client, data)
+    assert resp.status_code == 200
+    check = check_by_id(resp.json(), "encrypted-pdf")
+    assert check["status"] == "fail"
+    assert check["category"] == "file"
+    assert "protected" in check["reason"]
+
+
+def test_endpoint_user_password_pdf_returns_clean_400(client):
+    """User-password PDFs cannot be text-extracted at all — the endpoint
+    must reject them with the corrupted/password message, not a 500."""
+    doc = fitz.open()
+    page = doc.new_page()
+    page.insert_textbox(fitz.Rect(72, 72, 523, 770), BODY_TEXT, fontsize=10)
+    data = doc.tobytes(
+        encryption=fitz.PDF_ENCRYPT_AES_256, owner_pw="secret123", user_pw="usr"
+    )
+    doc.close()
+    resp = post_pdf(client, data)
+    assert resp.status_code == 400
+    assert "password-protected" in resp.json()["detail"]
+
+
+def test_endpoint_unencrypted_pdf_passes_encrypted_check(client):
+    pdf = make_pdf([((72, 72, 523, 770), BODY_TEXT)])
+    resp = post_pdf(client, pdf)
+    assert check_by_id(resp.json(), "encrypted-pdf")["status"] == "pass"
+
+
+# ── file-size (v2) ───────────────────────────────────────────────────
+
+
+def test_endpoint_padded_pdf_warns_file_size(client):
+    import os
+
+    doc = fitz.open()
+    page = doc.new_page()
+    page.insert_textbox(fitz.Rect(72, 72, 523, 770), BODY_TEXT, fontsize=10)
+    # incompressible junk stream pushes the file past the 2 MB portal cap
+    # while staying under the 5 MB upload limit
+    doc.embfile_add("junk.bin", os.urandom(2_600_000))
+    data = doc.tobytes()
+    doc.close()
+    assert len(data) > 2 * 1024 * 1024
+    resp = post_pdf(client, data)
+    assert resp.status_code == 200
+    check = check_by_id(resp.json(), "file-size")
+    assert check["status"] == "warn"
+    assert check["metric"]["kind"] == "band"
+    assert check["metric"]["value"] > 2
+    assert check["metric"]["unit"] == "MB"
+
+
+# ── filename (v2) ────────────────────────────────────────────────────
+
+
+def test_filename_check_skipped_for_editor_synthesized_name(client):
+    pdf = make_pdf([((72, 72, 523, 770), BODY_TEXT)])
+    body = post_pdf(client, pdf, name="resume.pdf").json()
+    assert check_by_id(body, "filename") is None
+
+
+def test_filename_check_fires_for_messy_upload_name(client):
+    pdf = make_pdf([((72, 72, 523, 770), BODY_TEXT)])
+    body = post_pdf(client, pdf, name="resume (1) final.pdf").json()
+    check = check_by_id(body, "filename")
+    assert check["status"] == "info"
+    assert check["informational"] is True
+    assert check["category"] == "file"
+    # informational checks never count toward the summary
+    counted = sum(body["summary"].values())
+    info_count = sum(1 for c in body["checks"] if c["status"] == "info")
+    assert counted == len(body["checks"]) - info_count
+
+
+# ── DOCX gets the text-based v2 battery ──────────────────────────────
+
+
+def test_endpoint_docx_includes_content_and_contact_checks(client):
+    paragraphs = BODY_TEXT.splitlines() + [
+        "- Built the ingestion service used by 40 teams.",
+        "- Led the migration of 12 services to Kubernetes.",
+        "- Cut infra spend 30% by right-sizing the fleet.",
+    ]
+    resp = client.post(
+        "/ats/check",
+        files={"file": ("cv.docx", make_docx(paragraphs), DOCX_MIME)},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    density = check_by_id(body, "bullet-density")
+    assert density is not None
+    assert density["category"] == "content"
+    assert check_by_id(body, "quantified-bullets")["category"] == "content"
+    assert check_by_id(body, "multiple-emails")["category"] == "contact"
+    assert check_by_id(body, "file-size")["category"] == "file"
+    # PDF-only checks stay off the DOCX report
+    assert check_by_id(body, "encrypted-pdf") is None
+    # every check carries a category
+    assert all(
+        c["category"]
+        in {"extraction", "layout", "typography", "contact", "content", "file"}
+        for c in body["checks"]
+    )
 
 
 # ── ats_feedback → regeneration prompt ───────────────────────────────

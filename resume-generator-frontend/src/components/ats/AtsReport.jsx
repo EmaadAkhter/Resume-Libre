@@ -14,7 +14,7 @@ import {
   XCircle,
 } from 'lucide-react'
 
-import { BandGauge, OutcomeBar, ThresholdMeter } from './AtsCharts'
+import { BandGauge, CategoryBar, OutcomeBar, ThresholdMeter } from './AtsCharts'
 
 // Status is a reserved scale and always ships icon + label, never color alone.
 const STATUS_META = {
@@ -65,7 +65,35 @@ export const CHECK_TITLES = {
   'header-footer-contact': 'Header/footer contact',
   'scanned-pdf': 'Scanned PDF',
   'writing-tips': 'Writing suggestions',
+  'bullet-density': 'Bullet density',
+  'quantified-bullets': 'Quantified achievements',
+  'long-bullets': 'Overlong bullets',
+  'repeated-verbs': 'Action-verb variety',
+  'first-person': 'First-person pronouns',
+  buzzwords: 'Cliché phrases',
+  'all-caps-lines': 'ALL-CAPS lines',
+  'duplicate-bullets': 'Duplicate bullets',
+  'date-format-consistency': 'Date format consistency',
+  'hyphenation-breaks': 'Hyphenation breaks',
+  'orphan-headings': 'Empty sections',
+  'multiple-emails': 'Multiple emails',
+  'broken-links': 'Broken links',
+  'file-size': 'File size',
+  'encrypted-pdf': 'PDF encryption',
+  filename: 'File name',
 }
+
+// Category labels in fixed display order; groups holding a warn/fail float
+// above all-pass groups at render time.
+export const CATEGORY_META = {
+  extraction: 'Extraction',
+  layout: 'Layout',
+  typography: 'Typography',
+  contact: 'Contact & Links',
+  content: 'Content & Writing',
+  file: 'File',
+}
+const CATEGORY_ORDER = Object.keys(CATEGORY_META)
 
 const FIELD_META = {
   email: { label: 'Email', Icon: Mail },
@@ -152,6 +180,58 @@ function CheckRow({ check }) {
   )
 }
 
+// Bucket checks by category, keeping check order within each group. Groups
+// with a warning/failure sort ahead of all-pass groups; within each tier the
+// fixed CATEGORY_ORDER holds (Array.sort is stable). Unknown categories from
+// older cached reports land in a trailing "Other" bucket instead of vanishing.
+function groupByCategory(checks) {
+  const groups = []
+  for (const check of checks) {
+    const category = check.category || 'other'
+    let group = groups.find((g) => g.category === category)
+    if (!group) {
+      group = { category, checks: [] }
+      groups.push(group)
+    }
+    group.checks.push(check)
+  }
+  const orderOf = (category) => {
+    const index = CATEGORY_ORDER.indexOf(category)
+    return index === -1 ? CATEGORY_ORDER.length : index
+  }
+  const needsAttention = (group) =>
+    group.checks.some((c) => c.status === 'warn' || c.status === 'fail') ? 0 : 1
+  return groups.sort(
+    (a, b) =>
+      needsAttention(a) - needsAttention(b) || orderOf(a.category) - orderOf(b.category)
+  )
+}
+
+function CategoryGroup({ category, checks }) {
+  // Open when anything inside needs a look (warn/fail/info); a group of
+  // pure passes collapses to its summary row.
+  const hasNonPass = checks.some((c) => c.status !== 'pass')
+  return (
+    <details className="group/cat" open={hasNonPass}>
+      <summary className="flex items-center gap-3 px-1 py-1.5 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
+        <span className="flex-1 text-sm font-semibold text-gray-900">
+          {CATEGORY_META[category] || 'Other'}
+        </span>
+        <CategoryBar checks={checks} />
+        <span className="text-xs text-gray-500">
+          {checks.length} {checks.length === 1 ? 'check' : 'checks'}
+        </span>
+        <ChevronDown className="w-4 h-4 text-gray-400 transition-transform group-open/cat:rotate-180" />
+      </summary>
+      <div className="mt-2 space-y-3">
+        {checks.map((check) => (
+          <CheckRow key={check.id} check={check} />
+        ))}
+      </div>
+    </details>
+  )
+}
+
 function FieldCard({ field, result }) {
   const meta = FIELD_META[field] || { label: field, Icon: LayoutList }
   const conf = CONFIDENCE_META[result.confidence] || CONFIDENCE_META.low
@@ -223,16 +303,28 @@ export default function AtsReport({ report, compact = false }) {
         </div>
       )}
 
-      <div className={compact ? 'space-y-2' : 'space-y-3'}>
-        {visibleChecks.map((check) => (
-          <CheckRow key={check.id} check={check} />
-        ))}
-        {compact && visibleChecks.length === 0 && (
-          <p className="text-xs text-emerald-700 flex items-center gap-1">
-            <CheckCircle className="w-3.5 h-3.5" /> All parseability checks pass
-          </p>
-        )}
-      </div>
+      {compact ? (
+        <div className="space-y-2">
+          {visibleChecks.map((check) => (
+            <CheckRow key={check.id} check={check} />
+          ))}
+          {visibleChecks.length === 0 && (
+            <p className="text-xs text-emerald-700 flex items-center gap-1">
+              <CheckCircle className="w-3.5 h-3.5" /> All parseability checks pass
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {groupByCategory(checks).map((group) => (
+            <CategoryGroup
+              key={group.category}
+              category={group.category}
+              checks={group.checks}
+            />
+          ))}
+        </div>
+      )}
 
       {!compact && extracted && (
         <div>

@@ -51,3 +51,27 @@ TINY_FONT_WARN_FRACTION = 0.10  # warn when this share of characters is fine pri
 # margins — a word whose bbox sits closer to a page edge than this fraction
 # of the page width/height risks being cropped by print-scan pipelines.
 EDGE_PROXIMITY_FRACTION = 0.015
+
+# ── v2 content & writing checks ──────────────────────────────────────
+
+# bullet-density: bullets / non-empty lines below this reads as prose walls
+BULLET_DENSITY_WARN = 0.15
+
+# quantified-bullets: fraction of bullets carrying a digit/%/$ below this
+# triggers an informational nudge (never a warning — style, not parsing)
+QUANTIFIED_BULLETS_INFO = 0.30
+
+# long-bullets: a single bullet running past this many words rambles
+LONG_BULLET_WORDS = 30
+
+# repeated-verbs: the same leading word on this many bullets reads monotone
+REPEATED_VERB_COUNT = 3
+
+# all-caps-lines: tolerated ALL-CAPS lines that are not section headers
+ALL_CAPS_MAX_LINES = 2
+
+# hyphenation-breaks: tolerated end-of-line hyphenated word splits
+HYPHEN_BREAK_MAX = 2
+
+# file-size: many ATS upload portals cap resumes at this size
+FILE_SIZE_WARN_MB = 2
