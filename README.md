@@ -5,7 +5,7 @@
 **AI-powered resume generator that transforms your GitHub profile, LinkedIn, and experience into an ATS-ready, one-page resume — in seconds.**
 
 [![Backend](https://img.shields.io/badge/Backend-Python-46E3B7?style=for-the-badge&logo=python)](https://github.com/EmaadAkhter/resume-libre)
-[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
+[![License](https://img.shields.io/badge/License-AGPL--3.0-blue?style=for-the-badge)](LICENSE)
 [![Made with React](https://img.shields.io/badge/Made%20with-React%2019-61DAFB?style=for-the-badge&logo=react)](https://react.dev)
 [![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
 
@@ -591,7 +591,9 @@ git push origin feature/your-feature
 
 ## License
 
-MIT — see [LICENSE](LICENSE) for details. Use it, fork it, ship it.
+AGPL-3.0 — see [LICENSE](LICENSE) for details.
+
+Why AGPL? Resume-Libre is and will stay open source. AGPL keeps it that way: you can use it, fork it, and self-host it freely — but if you run a modified version as a service, you share your changes back. Code published before the license change (through commit `dee7144`) remains available under MIT.
 
 ---
 
