@@ -16,14 +16,14 @@
 
 Resume-Libre reads your **GitHub profile README**, takes your **LinkedIn profile** (paste the text, or let the server scrape it), combines that with any extra information and a **job description** you provide, and uses an LLM (via OpenRouter) to write a complete **LaTeX document** — compiled to a real PDF by [Tectonic](https://tectonic-typesetting.github.io/) and streamed into the editor token by token.
 
-Every compiled PDF is automatically run through the built-in **ATS parseability checker** — 16 deterministic checks with measured values and concrete fixes, and a one-click **"Fix issues & regenerate"** loop that feeds the findings back into the LLM. No fake "ATS score". No web-page-pretending-to-be-a-PDF. Real typesetting, tailored to the role, verified parseable.
+Every compiled PDF is automatically run through the built-in **ATS parseability checker** — 31 deterministic checks across six categories, with measured values and concrete fixes, and a one-click **"Fix issues & regenerate"** loop that feeds the findings back into the LLM. No fake "ATS score". No web-page-pretending-to-be-a-PDF. Real typesetting, tailored to the role, verified parseable.
 
 ## Features
 
 | Feature | Details |
 | --- | --- |
 | **AI generation** | Any LLM via OpenRouter (configurable model), streamed via SSE |
-| **ATS parseability checker** | 16 deterministic checks (dual-extractor agreement, columns, tables, fonts, images, margins…) — checklist with reasons + fixes, never a fake score. Free at `/ats-check`, no account |
+| **ATS parseability checker** | 31 deterministic checks in six categories (extraction, layout, typography, contact, content, file) — grouped checklist with reasons, fixes, and threshold meters, never a fake score. Free at `/ats-check`, no account |
 | **Fix & regenerate loop** | Checker findings are injected into the prompt and the resume regenerates with formatting fixed, facts untouched |
 | **ATS keyword match** | Post-generation gap analysis against a pasted job description or one of 10 role presets — match %, matched/missing keywords, suggestions |
 | **Guided intake wizard** | No GitHub? 7-profession step-by-step wizard (software, finance, medical, legal, design, MBA, general) |
@@ -34,6 +34,7 @@ Every compiled PDF is automatically run through the built-in **ATS parseability 
 | **LaTeX pipeline** | LLM emits a complete LaTeX document; Tectonic compiles the PDF |
 | **Templates** | 5 built-in LaTeX styles (Awesome, ModernCV, AltaCV, Deedy, Friggeri lookalikes) + your own `.tex` uploads |
 | **Version control** | Branch, commit, and roll back resumes — like git for resumes |
+| **Public hosting** | One-click publish to a shareable page at `/r/<user_id>` — unpublish any time |
 | **Auth & privacy** | Supabase auth, row-level security, uploads processed in memory and never written to disk |
 | **Demo mode** | `DEMO_MODE=true` runs the whole stack with zero API keys — canned LLM output, real PDF compile |
 | **Self-hostable** | Docker Compose for dev and production (Caddy + auto-TLS), AGPL-3.0 |
@@ -122,7 +123,7 @@ sequenceDiagram
 flowchart TD
     UP["Upload / compiled PDF"] --> S0["Stage 0 — validation<br/>magic bytes · 5MB cap · scanned-PDF reject"]
     S0 --> S1["Stage 1 — dual extraction<br/>pdfplumber + PyMuPDF · layout · links · pdf_stats"]
-    S1 --> S2["Stage 2 — 16 deterministic checks<br/>agreement · columns · tables · encoding · completeness<br/>sections · contact · pages · length · fonts · tiny-font<br/>images · special chars · margins · link-only · header/footer"]
+    S1 --> S2["Stage 2 — 31 deterministic checks in 6 categories<br/>extraction · layout · typography<br/>contact · content & writing · file"]
     S1 --> S3["Stage 3 — field extraction<br/>regex + heuristics, confidence per field"]
     S3 -->|ambiguous fields, signed-in| LLMF["LLM fallback /ats/extract<br/>double-sampled, schema-validated"]
     S2 --> REP["Checklist report<br/>reason + fix + measured metrics — no blended score"]
