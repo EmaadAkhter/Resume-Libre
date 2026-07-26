@@ -124,6 +124,7 @@ async def analyze_ats_score(
     result = await analyze_ats(
         resume_text=body.resume_text,
         job_description=body.job_description,
+        target_role=body.target_role,
         demo=user.get("demo", False),
     )
     return result.model_dump()

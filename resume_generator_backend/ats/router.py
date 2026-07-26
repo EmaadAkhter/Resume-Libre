@@ -20,6 +20,14 @@ from core.limiter import limiter
 router = APIRouter(prefix="/ats", tags=["ats"])
 
 
+@router.get("/roles")
+async def list_roles():
+    """Role presets usable as a job-description substitute in /analyze-ats."""
+    from ats.skills import ROLE_KEYWORDS
+
+    return {"roles": sorted(ROLE_KEYWORDS)}
+
+
 @router.post("/check")
 @limiter.limit("5/hour")
 async def check_resume(request: Request, file: UploadFile = File(...)):

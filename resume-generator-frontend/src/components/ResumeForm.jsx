@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { FileText, Sparkles, Upload } from 'lucide-react'
 import TemplatePicker from './TemplatePicker'
 import { eventBus } from '../lib/eventBus'
@@ -21,6 +21,8 @@ export default function ResumeForm({
   const [linkedinText, setLinkedinText] = useState('')
   const [additionalInfo, setAdditionalInfo] = useState('')
   const [jobDescription, setJobDescription] = useState('')
+  const [targetRole, setTargetRole] = useState('')
+  const [roles, setRoles] = useState([])
   const [priority, setPriority] = useState('experience')
   const [uploadedFile, setUploadedFile] = useState(null)
   const [uploadedResumeText, setUploadedResumeText] = useState(null)
@@ -28,6 +30,13 @@ export default function ResumeForm({
   const [useAsData, setUseAsData] = useState(true)
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
+  useEffect(() => {
+    fetch(`${apiUrl}/ats/roles`)
+      .then((r) => (r.ok ? r.json() : { roles: [] }))
+      .then((d) => setRoles(d.roles || []))
+      .catch(() => {})
+  }, [apiUrl])
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0]
@@ -119,6 +128,7 @@ export default function ResumeForm({
       linkedin_url: linkedinMode === 'url' ? linkedinUrl || null : null,
       additional_info: info || null,
       job_description: jobDescription || null,
+      target_role: targetRole || null,
       priority,
       custom_system_prompt: customSystemPrompt,
       resume_template:
@@ -337,13 +347,33 @@ export default function ResumeForm({
           <span className="group-open:rotate-90 transition-transform inline-block">▶</span>
           Target a specific job (optional)
         </summary>
-        <div className="mt-2">
+        <div className="mt-2 space-y-2">
           <textarea
             value={jobDescription}
             onChange={(e) => setJobDescription(e.target.value)}
             placeholder="Paste job description here — AI will tailor the resume to match..."
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm h-28 resize-none"
           />
+          {roles.length > 0 && (
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">
+                No job description? Pick a target role for the match analysis:
+              </label>
+              <select
+                value={targetRole}
+                onChange={(e) => setTargetRole(e.target.value)}
+                disabled={Boolean(jobDescription.trim())}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none text-sm bg-white disabled:opacity-50"
+              >
+                <option value="">— none —</option>
+                {roles.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       </details>
 

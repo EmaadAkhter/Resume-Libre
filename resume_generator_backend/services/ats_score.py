@@ -21,7 +21,8 @@ MAX_JD_CHARS = 8_000
 
 SYSTEM_PROMPT = (
     "You are an ATS keyword analyst. Compare the resume against the job "
-    "description. Return ONLY a JSON object with keys: match_percent "
+    "description (or the expected keywords for the stated target role). "
+    "Return ONLY a JSON object with keys: match_percent "
     "(integer 0-100), matched_keywords (array of strings), missing_keywords "
     "(array of {keyword, importance: high|medium|low, suggestion}), summary "
     "(string, <=500 chars). The resume may be LaTeX source; analyze only its "
@@ -97,14 +98,33 @@ def _call_llm(client, model: str, messages: list[dict]):
 
 
 async def analyze_ats(
-    resume_text: str, job_description: str, demo: bool = False
+    resume_text: str,
+    job_description: str | None = None,
+    target_role: str | None = None,
+    demo: bool = False,
 ) -> AtsScoreResult:
-    """Score resume vs. job description keyword match via OpenRouter."""
+    """Score resume keyword match via OpenRouter, against either a pasted
+    job description or a named target role (preset keyword list)."""
     if demo:
         return DEMO_RESULT
 
     resume_text = resume_text[:MAX_RESUME_CHARS]
-    job_description = job_description[:MAX_JD_CHARS]
+
+    if job_description:
+        basis = f"JOB DESCRIPTION:\n{job_description[:MAX_JD_CHARS]}"
+    else:
+        from ats.skills import ROLE_KEYWORDS
+
+        keywords = ROLE_KEYWORDS.get(target_role or "")
+        if keywords is None:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Unknown target role. Valid roles: {sorted(ROLE_KEYWORDS)}",
+            )
+        basis = (
+            f"TARGET ROLE: {target_role}\n"
+            f"EXPECTED KEYWORDS FOR THIS ROLE:\n{', '.join(keywords)}"
+        )
 
     client = _get_client()
     model = _get_model()
@@ -113,9 +133,7 @@ async def analyze_ats(
         {"role": "system", "content": SYSTEM_PROMPT},
         {
             "role": "user",
-            "content": (
-                f"RESUME:\n{resume_text}\n\nJOB DESCRIPTION:\n{job_description}"
-            ),
+            "content": f"RESUME:\n{resume_text}\n\n{basis}",
         },
     ]
 
