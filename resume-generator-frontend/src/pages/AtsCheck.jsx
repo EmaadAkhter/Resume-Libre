@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   AlertTriangle,
@@ -6,9 +6,11 @@ import {
   CheckCircle,
   FileSearch,
   Loader2,
+  Sparkles,
   Upload,
   XCircle,
 } from 'lucide-react'
+import { authHeaders } from '../lib/api'
 
 const STATUS_META = {
   pass: { Icon: CheckCircle, color: 'text-green-600', label: 'Pass' },
@@ -32,18 +34,70 @@ const CONFIDENCE_META = {
   low: { className: 'bg-amber-100 text-amber-700', label: 'low confidence' },
 }
 
-// No account, no auth header — the endpoint is unauthenticated by design
-// and everything is processed in memory server-side.
+// The basic check needs no account — the endpoint is unauthenticated by
+// design and everything is processed in memory server-side. Only the
+// optional AI resolve pass (LLM cost) requires being signed in.
 export default function AtsCheck() {
   const [report, setReport] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [dragging, setDragging] = useState(false)
-  // Kept for stage 3 part 2: re-submitting the same file for the LLM pass.
+  // Re-submitted for the AI resolve pass on the ambiguous fields.
   const [lastFile, setLastFile] = useState(null)
+  const [signedIn, setSignedIn] = useState(null)
+  const [resolving, setResolving] = useState(false)
+  const [resolveError, setResolveError] = useState(null)
   const inputRef = useRef(null)
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
+  // authHeaders() is async (Supabase session lookup), so signed-in state is
+  // determined in an effect once a report is on screen.
+  useEffect(() => {
+    if (!report?.extracted) return undefined
+    let cancelled = false
+    authHeaders().then((headers) => {
+      if (!cancelled) setSignedIn(Object.keys(headers).length > 0)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [report])
+
+  const ambiguousCount = report?.extracted
+    ? Object.values(report.extracted).filter(
+        (r) => r.failed || r.confidence === 'low'
+      ).length
+    : 0
+
+  const resolveWithAi = async () => {
+    if (!lastFile || resolving) return
+    setResolving(true)
+    setResolveError(null)
+    try {
+      const headers = await authHeaders()
+      const formData = new FormData()
+      formData.append('file', lastFile)
+      const resp = await fetch(`${apiUrl}/ats/extract`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        throw new Error(err.detail || `AI resolve failed (${resp.status})`)
+      }
+      const data = await resp.json()
+      setReport((prev) => ({
+        ...prev,
+        extracted: { ...prev.extracted, ...data.extracted },
+      }))
+    } catch (err) {
+      setResolveError(err.message)
+    } finally {
+      setResolving(false)
+    }
+  }
 
   const checkFile = async (file) => {
     if (!file) return
@@ -54,6 +108,7 @@ export default function AtsCheck() {
     setLastFile(file)
     setLoading(true)
     setError(null)
+    setResolveError(null)
     setReport(null)
     try {
       const formData = new FormData()
@@ -228,6 +283,42 @@ export default function AtsCheck() {
                     )
                   })}
                 </div>
+
+                {ambiguousCount > 0 && signedIn === true && (
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      onClick={resolveWithAi}
+                      disabled={resolving || !lastFile}
+                      className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                    >
+                      {resolving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Resolving…
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4" />
+                          Resolve {ambiguousCount} ambiguous{' '}
+                          {ambiguousCount === 1 ? 'field' : 'fields'} with AI
+                        </>
+                      )}
+                    </button>
+                    {resolveError && (
+                      <p className="mt-2 text-sm text-red-600">{resolveError}</p>
+                    )}
+                  </div>
+                )}
+
+                {ambiguousCount > 0 && signedIn === false && (
+                  <p className="mt-4 text-xs text-gray-500">
+                    <Link to="/login" className="underline hover:text-gray-700">
+                      Sign in
+                    </Link>{' '}
+                    to resolve ambiguous fields with AI.
+                  </p>
+                )}
               </div>
             )}
 
