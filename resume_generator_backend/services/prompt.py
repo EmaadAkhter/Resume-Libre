@@ -56,8 +56,35 @@ def build_user_prompt(
     ats_feedback: str | None = None,
     hf_data: dict | None = None,
     orcid_data: dict | None = None,
+    github_readmes: list | None = None,
+    linkedin_profiles: list | None = None,
+    hf_profiles: list | None = None,
+    orcid_profiles: list | None = None,
 ) -> str:
-    contact = extract_contact_info(additional_info + " " + readme_content)
+    """Build the generation prompt from any number of profile sources.
+
+    The list params hold repeatable entries: github_readmes as
+    (username, readme) pairs, hf_profiles as (username, data) pairs,
+    linkedin_profiles / orcid_profiles as data dicts. The singular
+    readme_content / linkedin_data / hf_data / orcid_data params are
+    deprecated aliases folded into the lists when those are empty.
+    """
+    github_readmes = list(github_readmes or [])
+    linkedin_profiles = list(linkedin_profiles or [])
+    hf_profiles = list(hf_profiles or [])
+    orcid_profiles = list(orcid_profiles or [])
+
+    if not github_readmes and readme_content and readme_content.strip():
+        github_readmes.append((github_username, readme_content))
+    if not linkedin_profiles and linkedin_data:
+        linkedin_profiles.append(linkedin_data)
+    if not hf_profiles and hf_data:
+        hf_profiles.append(("", hf_data))
+    if not orcid_profiles and orcid_data:
+        orcid_profiles.append(orcid_data)
+
+    first_readme = github_readmes[0][1] if github_readmes else ""
+    contact = extract_contact_info(additional_info + " " + first_readme)
 
     if github_username:
         contact["github"] = github_username
@@ -87,26 +114,27 @@ AVAILABLE INFORMATION:
     if contact["linkedin"]:
         prompt += f"\nLinkedIn: {contact['linkedin']}"
 
-    prompt += "\n\n--- GitHub Profile Content ---\n"
-    prompt += (
-        readme_content
-        if readme_content and readme_content.strip()
-        else "(No GitHub profile content available)"
-    )
+    if github_readmes:
+        for gh_username, gh_readme in github_readmes:
+            prompt += f"\n\n--- GitHub Profile README: {gh_username} ---\n"
+            prompt += gh_readme
+    else:
+        prompt += "\n\n--- GitHub Profile Content ---\n"
+        prompt += "(No GitHub profile content available)"
 
-    if linkedin_data:
+    for li_data in linkedin_profiles:
         prompt += "\n\n--- LinkedIn Profile ---\n"
-        if linkedin_data.get("fullname"):
-            prompt += f"Name: {linkedin_data['fullname']}\n"
-        if linkedin_data.get("headline"):
-            prompt += f"Headline: {linkedin_data['headline']}\n"
-        if linkedin_data.get("location"):
-            prompt += f"Location: {linkedin_data['location']}\n"
-        if linkedin_data.get("email"):
-            prompt += f"Email: {linkedin_data['email']}\n"
-        if linkedin_data.get("about"):
-            prompt += f"Summary: {linkedin_data['about']}\n"
-        for exp in linkedin_data.get("experience", []):
+        if li_data.get("fullname"):
+            prompt += f"Name: {li_data['fullname']}\n"
+        if li_data.get("headline"):
+            prompt += f"Headline: {li_data['headline']}\n"
+        if li_data.get("location"):
+            prompt += f"Location: {li_data['location']}\n"
+        if li_data.get("email"):
+            prompt += f"Email: {li_data['email']}\n"
+        if li_data.get("about"):
+            prompt += f"Summary: {li_data['about']}\n"
+        for exp in li_data.get("experience", []):
             title = exp.get("title", exp.get("position", ""))
             company = exp.get("company", "")
             start = exp.get("start_date", exp.get("startDate", ""))
@@ -114,12 +142,12 @@ AVAILABLE INFORMATION:
             prompt += f"- {title} at {company} ({start}–{end})\n"
             if exp.get("description"):
                 prompt += f"  {exp['description']}\n"
-        for edu in linkedin_data.get("education", []):
+        for edu in li_data.get("education", []):
             degree = edu.get("degree_name", edu.get("degreeName", ""))
             field = edu.get("field_of_study", edu.get("fieldOfStudy", ""))
             school = edu.get("school", edu.get("schoolName", ""))
             prompt += f"- {degree} {field} @ {school}\n"
-        for proj in linkedin_data.get("projects", []):
+        for proj in li_data.get("projects", []):
             name = proj.get("name", "")
             desc = proj.get("description", "")
             if name:
@@ -129,45 +157,50 @@ AVAILABLE INFORMATION:
                 prompt += "\n"
         langs = [
             lang.get("language")
-            for lang in linkedin_data.get("languages", [])
+            for lang in li_data.get("languages", [])
             if lang.get("language")
         ]
         if langs:
             prompt += f"Languages: {', '.join(langs)}\n"
 
-    if hf_data:
-        prompt += "\n\n--- HuggingFace Profile ---\n"
-        for model in hf_data.get("models", []):
+    for hf_entry in hf_profiles:
+        hf_name, hf_info = ("", hf_entry) if isinstance(hf_entry, dict) else hf_entry
+        prompt += (
+            f"\n\n--- HuggingFace Profile: {hf_name} ---\n"
+            if hf_name
+            else "\n\n--- HuggingFace Profile ---\n"
+        )
+        for model in hf_info.get("models", []):
             prompt += (
                 f"Model: {model.get('id', '')} — {model.get('downloads', 0)} downloads, "
                 f"{model.get('likes', 0)} likes\n"
             )
-        for dataset in hf_data.get("datasets", []):
+        for dataset in hf_info.get("datasets", []):
             prompt += (
                 f"Dataset: {dataset.get('id', '')} — {dataset.get('downloads', 0)} downloads, "
                 f"{dataset.get('likes', 0)} likes\n"
             )
-        for space in hf_data.get("spaces", []):
+        for space in hf_info.get("spaces", []):
             prompt += f"Space: {space.get('id', '')} — {space.get('likes', 0)} likes\n"
 
-    if orcid_data:
+    for orcid_entry in orcid_profiles:
         prompt += "\n\n--- ORCID Research Profile ---\n"
-        if orcid_data.get("name"):
-            prompt += f"Name: {orcid_data['name']}\n"
-        if orcid_data.get("employments"):
+        if orcid_entry.get("name"):
+            prompt += f"Name: {orcid_entry['name']}\n"
+        if orcid_entry.get("employments"):
             prompt += "Affiliations:\n"
-            for emp in orcid_data["employments"]:
+            for emp in orcid_entry["employments"]:
                 prompt += (
                     f"- {emp.get('role', '')}, {emp.get('org', '')} "
                     f"({emp.get('start', '')}–{emp.get('end', '')})\n"
                 )
-        if orcid_data.get("educations"):
+        if orcid_entry.get("educations"):
             prompt += "Education:\n"
-            for edu in orcid_data["educations"]:
+            for edu in orcid_entry["educations"]:
                 prompt += f"- {edu.get('degree', '')}, {edu.get('org', '')} ({edu.get('year', '')})\n"
-        if orcid_data.get("works"):
+        if orcid_entry.get("works"):
             prompt += "Publications:\n"
-            for work in orcid_data["works"]:
+            for work in orcid_entry["works"]:
                 year = work.get("year", "")
                 prompt += f"- {work.get('title', '')}"
                 if year:

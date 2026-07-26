@@ -3,11 +3,21 @@ from typing import Literal
 from pydantic import BaseModel, Field, model_validator
 
 
+class ProfileRef(BaseModel):
+    """One profile source row: which site and the username/URL/id for it."""
+
+    type: Literal["github", "linkedin", "orcid", "huggingface"]
+    value: str = Field(min_length=1, max_length=200)
+
+
 class ResumeRequest(BaseModel):
     github_username: str | None = None
     linkedin_url: str | None = None
     hf_username: str | None = Field(None, max_length=60)
     orcid_id: str | None = Field(None, max_length=60)
+    # Composable profile-source rows — any mix, duplicates of a type allowed.
+    # The legacy scalars above remain accepted and are merged in by the router.
+    profiles: list[ProfileRef] | None = Field(None, max_length=10)
     additional_info: str | None = None
     job_description: str | None = None
     priority: Literal["experience", "projects", "balanced"] = "experience"

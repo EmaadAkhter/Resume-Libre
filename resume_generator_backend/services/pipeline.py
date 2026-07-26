@@ -11,6 +11,42 @@ from services.orcid import fetch_orcid_profile
 from services.prompt import build_user_prompt
 
 
+def _as_profile_tuples(
+    profiles: list | None,
+    github_username: str = "",
+    linkedin_url: str = "",
+    hf_username: str = "",
+    orcid_id: str = "",
+) -> list[tuple[str, str]]:
+    """Normalize profile refs (ProfileRef objects or dicts) to (type, value).
+
+    Legacy scalar params are folded in only when no profile rows were given —
+    the router already merges scalars into `profiles`; this covers direct
+    callers and older tests.
+    """
+    refs: list[tuple[str, str]] = []
+    for ref in profiles or []:
+        if isinstance(ref, dict):
+            ptype, value = ref.get("type"), ref.get("value")
+        else:
+            ptype, value = getattr(ref, "type", None), getattr(ref, "value", None)
+        ptype = (ptype or "").strip().lower()
+        value = (value or "").strip()
+        if ptype and value:
+            refs.append((ptype, value))
+
+    if not refs:
+        for ptype, value in (
+            ("github", github_username),
+            ("linkedin", linkedin_url),
+            ("huggingface", hf_username),
+            ("orcid", orcid_id),
+        ):
+            if value and value.strip():
+                refs.append((ptype, value.strip()))
+    return refs
+
+
 class ResumePipeline:
     """Event-driven resume generation pipeline with pluggable middleware.
 
@@ -50,6 +86,75 @@ class ResumePipeline:
                 data = result
         return data
 
+    async def _fetch_profiles(
+        self, refs: list[tuple[str, str]]
+    ) -> tuple[list, list, list, list]:
+        """Fetch every profile source row; one bus event per fetch."""
+        github_readmes: list[tuple[str, str]] = []
+        linkedin_profiles: list[dict] = []
+        hf_profiles: list[tuple[str, dict]] = []
+        orcid_profiles: list[dict] = []
+
+        for ptype, value in refs:
+            if ptype == "github":
+                readme = await fetch_github_readme(value)
+                readme = await self._apply_middleware("readme_fetch", readme)
+                ok = bool(readme)
+                if ok:
+                    github_readmes.append((value, readme))
+            elif ptype == "linkedin":
+                data = await fetch_linkedin_profile(value)
+                ok = bool(data)
+                if ok:
+                    linkedin_profiles.append(data)
+            elif ptype == "huggingface":
+                data = await fetch_huggingface_profile(value)
+                ok = bool(data)
+                if ok:
+                    hf_profiles.append((value, data))
+            elif ptype == "orcid":
+                data = await fetch_orcid_profile(value)
+                ok = bool(data)
+                if ok:
+                    orcid_profiles.append(data)
+            else:
+                continue
+            await bus.publish(
+                Events.README_FETCHED, {"source": ptype, "id": value, "ok": ok}
+            )
+
+        return github_readmes, linkedin_profiles, hf_profiles, orcid_profiles
+
+    def _build_prompt_from_profiles(
+        self,
+        refs: list[tuple[str, str]],
+        fetched: tuple[list, list, list, list],
+        github_username: str,
+        additional_info: str,
+        job_description: str,
+        priority: str,
+        resume_template: str | None,
+        ats_feedback: str | None,
+    ) -> str:
+        github_readmes, linkedin_profiles, hf_profiles, orcid_profiles = fetched
+        first_github = (
+            next((v for t, v in refs if t == "github"), "")
+            or (github_username or "").strip()
+        )
+        return build_user_prompt(
+            first_github,
+            "",
+            additional_info,
+            priority,
+            resume_template,
+            job_description=job_description,
+            ats_feedback=ats_feedback,
+            github_readmes=github_readmes,
+            linkedin_profiles=linkedin_profiles,
+            hf_profiles=hf_profiles,
+            orcid_profiles=orcid_profiles,
+        )
+
     async def run(
         self,
         github_username: str = "",
@@ -64,61 +169,30 @@ class ResumePipeline:
         template_format: str = "md",
         ats_feedback: str | None = None,
         demo: bool = False,
+        profiles: list | None = None,
     ) -> str:
         """Execute the full pipeline. Returns the generated resume content."""
 
         if demo:
             return await generate_resume_content("", demo=True)
 
-        # Stage 1: Fetch GitHub README
-        readme_content = ""
-        if github_username:
-            readme_content = await fetch_github_readme(github_username)
-            readme_content = await self._apply_middleware(
-                "readme_fetch", readme_content
-            )
-            await bus.publish(
-                Events.README_FETCHED,
-                {"username": github_username, "length": len(readme_content)},
-            )
+        refs = _as_profile_tuples(
+            profiles, github_username, linkedin_url, hf_username, orcid_id
+        )
 
-        # Stage 1b: Fetch LinkedIn profile
-        linkedin_data = {}
-        if linkedin_url:
-            linkedin_data = await fetch_linkedin_profile(linkedin_url)
-            await bus.publish(
-                Events.README_FETCHED, {"linkedin": True, "fields": len(linkedin_data)}
-            )
-
-        # Stage 1c: Fetch HuggingFace profile
-        hf_data = {}
-        if hf_username:
-            hf_data = await fetch_huggingface_profile(hf_username)
-            await bus.publish(
-                Events.README_FETCHED,
-                {"source": "huggingface", "fields": len(hf_data)},
-            )
-
-        # Stage 1d: Fetch ORCID profile
-        orcid_data = {}
-        if orcid_id:
-            orcid_data = await fetch_orcid_profile(orcid_id)
-            await bus.publish(
-                Events.README_FETCHED, {"source": "orcid", "fields": len(orcid_data)}
-            )
+        # Stage 1: Fetch every profile source
+        fetched = await self._fetch_profiles(refs)
 
         # Stage 2: Build the prompt
-        user_prompt = build_user_prompt(
+        user_prompt = self._build_prompt_from_profiles(
+            refs,
+            fetched,
             github_username,
-            readme_content,
             additional_info,
+            job_description,
             priority,
             resume_template,
-            linkedin_data=linkedin_data,
-            job_description=job_description,
-            ats_feedback=ats_feedback,
-            hf_data=hf_data,
-            orcid_data=orcid_data,
+            ats_feedback,
         )
         user_prompt = await self._apply_middleware("prompt_build", user_prompt)
         await bus.publish(Events.PROMPT_BUILT, {"length": len(user_prompt)})
@@ -147,6 +221,7 @@ class ResumePipeline:
         template_format: str = "md",
         ats_feedback: str | None = None,
         demo: bool = False,
+        profiles: list | None = None,
     ):
         """Execute the pipeline with streaming generation. Yields tokens."""
 
@@ -155,55 +230,23 @@ class ResumePipeline:
                 yield token
             return
 
-        # Stage 1: Fetch GitHub README
-        readme_content = ""
-        if github_username:
-            readme_content = await fetch_github_readme(github_username)
-            readme_content = await self._apply_middleware(
-                "readme_fetch", readme_content
-            )
-            await bus.publish(
-                Events.README_FETCHED,
-                {"username": github_username, "length": len(readme_content)},
-            )
+        refs = _as_profile_tuples(
+            profiles, github_username, linkedin_url, hf_username, orcid_id
+        )
 
-        # Stage 1b: Fetch LinkedIn profile
-        linkedin_data = {}
-        if linkedin_url:
-            linkedin_data = await fetch_linkedin_profile(linkedin_url)
-            await bus.publish(
-                Events.README_FETCHED, {"linkedin": True, "fields": len(linkedin_data)}
-            )
-
-        # Stage 1c: Fetch HuggingFace profile
-        hf_data = {}
-        if hf_username:
-            hf_data = await fetch_huggingface_profile(hf_username)
-            await bus.publish(
-                Events.README_FETCHED,
-                {"source": "huggingface", "fields": len(hf_data)},
-            )
-
-        # Stage 1d: Fetch ORCID profile
-        orcid_data = {}
-        if orcid_id:
-            orcid_data = await fetch_orcid_profile(orcid_id)
-            await bus.publish(
-                Events.README_FETCHED, {"source": "orcid", "fields": len(orcid_data)}
-            )
+        # Stage 1: Fetch every profile source
+        fetched = await self._fetch_profiles(refs)
 
         # Stage 2: Build the prompt
-        user_prompt = build_user_prompt(
+        user_prompt = self._build_prompt_from_profiles(
+            refs,
+            fetched,
             github_username,
-            readme_content,
             additional_info,
+            job_description,
             priority,
             resume_template,
-            linkedin_data=linkedin_data,
-            job_description=job_description,
-            ats_feedback=ats_feedback,
-            hf_data=hf_data,
-            orcid_data=orcid_data,
+            ats_feedback,
         )
         user_prompt = await self._apply_middleware("prompt_build", user_prompt)
         await bus.publish(Events.PROMPT_BUILT, {"length": len(user_prompt)})

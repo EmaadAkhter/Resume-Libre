@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react'
 import { FileText, Sparkles, Upload } from 'lucide-react'
 import TemplatePicker from './TemplatePicker'
+import ProfileSources from './ProfileSources'
 import { eventBus } from '../lib/eventBus'
 import { EVENTS } from '../lib/eventTypes'
 import { authHeaders } from '../lib/api'
+
+const newSource = (type) => ({ id: crypto.randomUUID(), type, value: '' })
 
 export default function ResumeForm({
   onGenerate,
@@ -15,12 +18,7 @@ export default function ResumeForm({
   user,
   customSystemPrompt = null,
 }) {
-  const [githubUsername, setGithubUsername] = useState('')
-  const [linkedinUrl, setLinkedinUrl] = useState('')
-  const [linkedinMode, setLinkedinMode] = useState('paste') // 'paste' | 'url'
-  const [linkedinText, setLinkedinText] = useState('')
-  const [hfUsername, setHfUsername] = useState('')
-  const [orcidId, setOrcidId] = useState('')
+  const [sources, setSources] = useState(() => [newSource('github')])
   const [additionalInfo, setAdditionalInfo] = useState('')
   const [jobDescription, setJobDescription] = useState('')
   const [targetRole, setTargetRole] = useState('')
@@ -104,10 +102,12 @@ export default function ResumeForm({
   }
 
   const handleGenerate = () => {
-    if (!githubUsername && !linkedinUrl && !additionalInfo && !linkedinText) {
+    const filled = sources.filter((s) => s.value.trim())
+
+    if (filled.length === 0 && !additionalInfo) {
       eventBus.emit(EVENTS.NOTIFICATION_SHOW, {
         type: 'error',
-        message: 'Please provide a GitHub username, LinkedIn URL, or additional information',
+        message: 'Please add at least one profile source or provide additional information',
       })
       return
     }
@@ -120,17 +120,11 @@ export default function ResumeForm({
       return
     }
 
-    // Pasted LinkedIn text rides in the additional_info prompt slot — no scraping needed
-    const info = linkedinText.trim()
-      ? `${additionalInfo}\n\n--- LinkedIn profile (pasted) ---\n${linkedinText.trim()}`.trim()
-      : additionalInfo
-
     onGenerate({
-      github_username: githubUsername || null,
-      linkedin_url: linkedinMode === 'url' ? linkedinUrl || null : null,
-      hf_username: hfUsername.trim() || null,
-      orcid_id: orcidId.trim() || null,
-      additional_info: info || null,
+      profiles: filled.map(({ type, value }) => ({ type, value: value.trim() })),
+      // Legacy scalar — the server's contact heuristic still reads it
+      github_username: filled.find((s) => s.type === 'github')?.value.trim() || null,
+      additional_info: additionalInfo || null,
       job_description: jobDescription || null,
       target_role: targetRole || null,
       priority,
@@ -144,106 +138,9 @@ export default function ResumeForm({
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">GitHub Username</label>
-        <input
-          type="text"
-          value={githubUsername}
-          onChange={(e) => setGithubUsername(e.target.value)}
-          placeholder="e.g., octocat"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm"
-        />
-        <p className="mt-1 text-xs text-gray-500">We'll fetch your README</p>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Profile sources</label>
+        <ProfileSources sources={sources} onChange={setSources} />
       </div>
-
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-medium text-gray-700">LinkedIn (Optional)</label>
-          <div className="flex text-xs rounded-lg border border-gray-300 overflow-hidden">
-            <button
-              type="button"
-              onClick={() => setLinkedinMode('paste')}
-              className={`px-2 py-1 ${linkedinMode === 'paste' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600'}`}
-            >
-              Paste text
-            </button>
-            <button
-              type="button"
-              onClick={() => setLinkedinMode('url')}
-              className={`px-2 py-1 ${linkedinMode === 'url' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600'}`}
-            >
-              URL
-            </button>
-          </div>
-        </div>
-        {linkedinMode === 'paste' ? (
-          <>
-            <textarea
-              value={linkedinText}
-              onChange={(e) => setLinkedinText(e.target.value)}
-              placeholder="Open your LinkedIn profile, select all (Ctrl/Cmd+A), copy, and paste here..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm h-24 resize-none"
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              Fastest & most reliable — no scraping involved
-            </p>
-          </>
-        ) : (
-          <>
-            <input
-              type="url"
-              value={linkedinUrl}
-              onChange={(e) => setLinkedinUrl(e.target.value)}
-              placeholder="https://linkedin.com/in/username"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm"
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              We'll try to fetch your profile — can take a few minutes and requires the server to
-              have scraping configured. Pasting text is faster.
-            </p>
-          </>
-        )}
-      </div>
-
-      <details className="group">
-        <summary className="cursor-pointer text-sm font-medium text-gray-700 list-none flex items-center gap-2">
-          <span className="group-open:rotate-90 transition-transform inline-block">▶</span>
-          More profiles (optional)
-        </summary>
-        <div className="mt-2 space-y-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              HuggingFace username
-            </label>
-            <input
-              type="text"
-              value={hfUsername}
-              onChange={(e) => setHfUsername(e.target.value)}
-              placeholder="e.g., mistralai"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm"
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              Models, datasets and spaces are pulled automatically
-            </p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">ORCID iD</label>
-            <input
-              type="text"
-              value={orcidId}
-              onChange={(e) => setOrcidId(e.target.value)}
-              placeholder="0000-0002-1825-0097"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm"
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              Publications and affiliations for academic resumes
-            </p>
-          </div>
-          <p className="text-xs text-gray-500">
-            Kaggle or Behance? Paste your best results into Additional Information — their APIs
-            require keys we can't ask you for.
-          </p>
-        </div>
-      </details>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Template</label>
