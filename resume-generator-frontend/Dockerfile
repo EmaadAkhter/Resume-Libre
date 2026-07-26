@@ -1,5 +1,5 @@
 # ─── Build stage ────────────────────────────────────
-FROM node:20-alpine AS build
+FROM node:26-alpine AS build
 # Vite bakes these in at build time — all three must be passed as build args
 ARG VITE_API_URL=/api
 ARG VITE_SUPABASE_URL
