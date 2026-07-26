@@ -38,3 +38,136 @@ VALUES (
   false
 )
 ON CONFLICT DO NOTHING;
+
+-- 4+5. Community LaTeX templates (see templates/ directory + TEMPLATES.md)
+
+INSERT INTO templates (name, description, content, format, is_admin_only, is_public)
+VALUES (
+  'Awesome Style',
+  'Awesome-CV-inspired single-column layout with skyblue accents. Compiles with Tectonic (CTAN packages only).',
+  $tex$% Awesome-style — Awesome-CV-inspired look built on the article class so it
+% compiles with Tectonic from CTAN packages alone (the real awesome-cv.cls is
+% not on CTAN). Skyblue accent, rule-under sections, tight one-page layout.
+% Placeholders in {{DOUBLE_BRACES}} are filled by the AI with the user's data.
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=0.55in]{geometry}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+
+\definecolor{awesome}{HTML}{0395DE}
+\definecolor{darktext}{HTML}{414141}
+
+\titleformat{\section}{\large\bfseries\color{darktext}}{}{0em}{}[{\color{awesome}\titlerule[1.2pt]}]
+\titlespacing{\section}{0pt}{10pt}{6pt}
+\setlength{\parindent}{0pt}
+\pagestyle{empty}
+
+\begin{document}
+
+\begin{center}
+  {\Huge {{FIRST_NAME}} {\bfseries\color{awesome}{{LAST_NAME}}}}\\[4pt]
+  {\small\color{darktext} {{HEADLINE}}}\\[6pt]
+  {\footnotesize
+    \href{mailto:{{EMAIL}}}{{{EMAIL}}} \textbar\
+    {{PHONE}} \textbar\ {{LOCATION}} \textbar\
+    \href{https://linkedin.com/in/{{LINKEDIN_HANDLE}}}{linkedin.com/in/{{LINKEDIN_HANDLE}}} \textbar\
+    \href{https://github.com/{{GITHUB_HANDLE}}}{github.com/{{GITHUB_HANDLE}}}}
+\end{center}
+
+\section{Summary}
+{{SUMMARY_2_LINES}}
+
+\section{Experience}
+\textbf{{{JOB_TITLE}}} \hfill {\color{awesome}\small {{DATES}}}\\
+{\small\itshape {{COMPANY}} — {{LOCATION}}}
+\begin{itemize}[leftmargin=*,nosep,itemsep=2pt]
+  \item {{ACHIEVEMENT_1}}
+  \item {{ACHIEVEMENT_2}}
+  \item {{ACHIEVEMENT_3}}
+\end{itemize}
+
+\section{Projects}
+\textbf{{{PROJECT_NAME}}} \hfill {\color{awesome}\small \href{{{PROJECT_URL}}}{link}}
+\begin{itemize}[leftmargin=*,nosep,itemsep=2pt]
+  \item {{PROJECT_DESCRIPTION}}
+  \item {{PROJECT_TECH_STACK}}
+\end{itemize}
+
+\section{Skills}
+\begin{itemize}[leftmargin=*,nosep,itemsep=2pt]
+  \item \textbf{Languages:} {{LANGUAGES}}
+  \item \textbf{Frameworks:} {{FRAMEWORKS}}
+  \item \textbf{Tools:} {{TOOLS}}
+\end{itemize}
+
+\section{Education}
+\textbf{{{DEGREE}}} \hfill {\color{awesome}\small {{GRAD_YEAR}}}\\
+{\small\itshape {{UNIVERSITY}}}
+
+\end{document}
+$tex$,
+  'tex',
+  false,
+  true
+)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO templates (name, description, content, format, is_admin_only, is_public)
+VALUES (
+  'ModernCV Classic',
+  'The classic moderncv class from CTAN — timeless two-tone resume. Compiles with Tectonic.',
+  $tex$% ModernCV Classic — real moderncv class from CTAN, compiles with Tectonic.
+% Placeholders in {{DOUBLE_BRACES}} are filled by the AI with the user's data.
+\documentclass[10pt,a4paper,sans]{moderncv}
+\moderncvstyle{classic}
+\moderncvcolor{blue}
+\usepackage[scale=0.82]{geometry}
+
+\name{{{FIRST_NAME}}}{{{LAST_NAME}}}
+\title{{{HEADLINE}}}
+\phone[mobile]{{{PHONE}}}
+\email{{{EMAIL}}}
+\social[linkedin]{{{LINKEDIN_HANDLE}}}
+\social[github]{{{GITHUB_HANDLE}}}
+
+\begin{document}
+
+\makecvtitle
+
+\section{Summary}
+\cvitem{}{{{SUMMARY_2_LINES}}}
+
+\section{Experience}
+\cventry{{{DATES}}}{{{JOB_TITLE}}}{{{COMPANY}}}{{{LOCATION}}}{}{%
+\begin{itemize}
+\item {{ACHIEVEMENT_1}}
+\item {{ACHIEVEMENT_2}}
+\item {{ACHIEVEMENT_3}}
+\end{itemize}}
+
+\section{Projects}
+\cventry{}{{{PROJECT_NAME}}}{}{}{}{%
+\begin{itemize}
+\item {{PROJECT_DESCRIPTION}}
+\item {{PROJECT_TECH_STACK}}
+\end{itemize}}
+
+\section{Skills}
+\cvitem{Languages}{{{LANGUAGES}}}
+\cvitem{Frameworks}{{{FRAMEWORKS}}}
+\cvitem{Tools}{{{TOOLS}}}
+
+\section{Education}
+\cventry{{{GRAD_YEAR}}}{{{DEGREE}}}{{{UNIVERSITY}}}{}{}{}
+
+\end{document}
+$tex$,
+  'tex',
+  false,
+  true
+)
+ON CONFLICT DO NOTHING;

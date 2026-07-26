@@ -1,6 +1,7 @@
 import os
 
 import httpx
+from fastapi import HTTPException
 
 LATEX_SERVICE_URL = os.getenv("LATEX_SERVICE_URL", "http://latex-service:8000")
 
@@ -13,10 +14,15 @@ async def compile_latex_pdf(latex_content: str) -> bytes:
         idx = latex_content.index(r"\documentclass")
         latex_content = latex_content[idx:]
 
-    async with httpx.AsyncClient(timeout=310) as client:
-        resp = await client.post(
-            f"{LATEX_SERVICE_URL}/compile",
-            json={"latex": latex_content},
+    try:
+        async with httpx.AsyncClient(timeout=310) as client:
+            resp = await client.post(
+                f"{LATEX_SERVICE_URL}/compile",
+                json={"latex": latex_content},
+            )
+    except httpx.HTTPError as e:
+        raise HTTPException(
+            status_code=503, detail=f"LaTeX compile service unavailable: {e}"
         )
 
     if resp.status_code != 200:

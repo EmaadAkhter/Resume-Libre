@@ -1,0 +1,7 @@
+# Production reverse proxy — auto-TLS via Let's Encrypt.
+# The frontend's nginx routes /api/* to the backend internally,
+# so Caddy only needs one upstream.
+resumelibre.com, www.resumelibre.com {
+	encode gzip
+	reverse_proxy frontend:80
+}

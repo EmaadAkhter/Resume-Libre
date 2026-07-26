@@ -56,8 +56,12 @@ class ResumePipeline:
         custom_system_prompt: Optional[str] = None,
         resume_template: Optional[str] = None,
         template_format: str = "md",
+        demo: bool = False,
     ) -> str:
         """Execute the full pipeline. Returns the generated resume content."""
+
+        if demo:
+            return await generate_resume_content("", demo=True)
 
         # Stage 1: Fetch GitHub README
         readme_content = ""
@@ -112,8 +116,14 @@ class ResumePipeline:
         custom_system_prompt: Optional[str] = None,
         resume_template: Optional[str] = None,
         template_format: str = "md",
+        demo: bool = False,
     ):
         """Execute the pipeline with streaming generation. Yields tokens."""
+
+        if demo:
+            async for token in generate_resume_stream("", demo=True):
+                yield token
+            return
 
         # Stage 1: Fetch GitHub README
         readme_content = ""

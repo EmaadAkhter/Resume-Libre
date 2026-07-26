@@ -59,5 +59,6 @@ def mock_env_vars():
     os.environ["OPENROUTER_MODEL"] = "test-model"
     os.environ["SUPABASE_URL"] = "https://test.supabase.co"
     os.environ["SUPABASE_SERVICE_KEY"] = "test-service-key"
+    os.environ["RATE_LIMIT_STORAGE"] = "memory://"
     yield
     # Cleanup is automatic since we're just setting env vars

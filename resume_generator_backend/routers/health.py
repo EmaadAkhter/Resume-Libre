@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
+from core.deps import is_demo_mode
 from services.genrate_resume import load_system_prompt
 from schemas.export import SystemPromptResponse
 
@@ -18,11 +19,6 @@ async def root():
             "/generate-resume-stream": "GET - Stream resume generation (SSE)",
             "/export-resume": "POST - Export resume",
             "/extract-resume": "POST - Extract text from file",
-            "/resumes": "CRUD - Resume management",
-            "/resumes/{id}/versions": "Version history",
-            "/resumes/{id}/branches": "Branch management",
-            "/resumes/{id}/tags": "Tag management",
-            "/templates": "CRUD - Template management",
             "/debug/events": "GET - Live event stream (SSE)",
         },
     }
@@ -30,7 +26,7 @@ async def root():
 
 @router.get("/health")
 async def health_check():
-    return {"status": "healthy", "service": "resume-libre"}
+    return {"status": "healthy", "service": "resume-libre", "demo": is_demo_mode()}
 
 
 @router.get("/get-system-prompt", response_model=SystemPromptResponse)

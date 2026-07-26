@@ -5,6 +5,7 @@ import { EVENTS } from '../lib/eventTypes'
 
 export default function BackendStatusBanner() {
   const [status, setStatus] = useState('checking')
+  const [demoMode, setDemoMode] = useState(false)
   const failCount = useRef(0)
 
   useEffect(() => {
@@ -17,6 +18,8 @@ export default function BackendStatusBanner() {
         if (response.ok) {
           failCount.current = 0
           setStatus('connected')
+          const data = await response.json().catch(() => ({}))
+          setDemoMode(Boolean(data.demo))
           eventBus.emit(EVENTS.BACKEND_CONNECTED)
         } else {
           failCount.current++
@@ -39,6 +42,14 @@ export default function BackendStatusBanner() {
 
     return () => clearInterval(interval)
   }, [])
+
+  if (status === 'connected' && demoMode) {
+    return (
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-lg shadow z-50 text-xs">
+        Demo mode — output is a canned sample, no API keys in use
+      </div>
+    )
+  }
 
   if (status === 'connected' || status === 'checking') return null
 

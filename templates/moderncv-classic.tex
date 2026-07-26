@@ -1,0 +1,45 @@
+% ModernCV Classic — real moderncv class from CTAN, compiles with Tectonic.
+% Placeholders in {{DOUBLE_BRACES}} are filled by the AI with the user's data.
+\documentclass[10pt,a4paper,sans]{moderncv}
+\moderncvstyle{classic}
+\moderncvcolor{blue}
+\usepackage[scale=0.82]{geometry}
+
+\name{{{FIRST_NAME}}}{{{LAST_NAME}}}
+\title{{{HEADLINE}}}
+\phone[mobile]{{{PHONE}}}
+\email{{{EMAIL}}}
+\social[linkedin]{{{LINKEDIN_HANDLE}}}
+\social[github]{{{GITHUB_HANDLE}}}
+
+\begin{document}
+
+\makecvtitle
+
+\section{Summary}
+\cvitem{}{{{SUMMARY_2_LINES}}}
+
+\section{Experience}
+\cventry{{{DATES}}}{{{JOB_TITLE}}}{{{COMPANY}}}{{{LOCATION}}}{}{%
+\begin{itemize}
+\item {{ACHIEVEMENT_1}}
+\item {{ACHIEVEMENT_2}}
+\item {{ACHIEVEMENT_3}}
+\end{itemize}}
+
+\section{Projects}
+\cventry{}{{{PROJECT_NAME}}}{}{}{}{%
+\begin{itemize}
+\item {{PROJECT_DESCRIPTION}}
+\item {{PROJECT_TECH_STACK}}
+\end{itemize}}
+
+\section{Skills}
+\cvitem{Languages}{{{LANGUAGES}}}
+\cvitem{Frameworks}{{{FRAMEWORKS}}}
+\cvitem{Tools}{{{TOOLS}}}
+
+\section{Education}
+\cventry{{{GRAD_YEAR}}}{{{DEGREE}}}{{{UNIVERSITY}}}{}{}{}
+
+\end{document}

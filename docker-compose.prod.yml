@@ -17,12 +17,19 @@ services:
     build: ./resume_generator_backend
     env_file:
       - .env
+    environment:
+      REDIS_URL: redis://redis:6379
+      WEB_CONCURRENCY: 2 # 2 uvicorn workers — sized for a 2GB/1vCPU VPS
     depends_on:
       latex-service:
         condition: service_healthy
       redis:
         condition: service_started
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512m
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
@@ -58,9 +65,14 @@ services:
 
   redis:
     image: redis:7-alpine
+    command: redis-server --maxmemory 100mb --maxmemory-policy allkeys-lru
     restart: unless-stopped
     volumes:
       - redis_data:/data
+    deploy:
+      resources:
+        limits:
+          memory: 128m
 
 volumes:
   caddy_data:

@@ -65,4 +65,6 @@ desktop.ini
 logs/
 
 # ─── Deployment guide (keep local, track with issues) ─
-DEPLOYMENT.md
+*-filled.tex
+*-filled.pdf
+LAUNCH.md

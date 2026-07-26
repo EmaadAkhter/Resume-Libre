@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import { eventBus } from '../lib/eventBus'
 import { EVENTS } from '../lib/eventTypes'
 import { useGenerationStream } from '../hooks/useGenerationStream'
+import { authHeaders } from '../lib/api'
 import { useTemplates } from '../hooks/useTemplates'
 import ResumeForm from '../components/ResumeForm'
 import MarkdownEditor from '../components/MarkdownEditor'
@@ -12,7 +13,6 @@ import ExportMenu from '../components/ExportMenu'
 import SystemPromptModal from '../components/SystemPromptModal'
 import VersionHistory from '../components/VersionHistory'
 import BranchManager from '../components/BranchManager'
-import DiffViewer from '../components/DiffViewer'
 
 export default function ResumeEditor({ user }) {
   const { resumeId } = useParams()
@@ -31,7 +31,6 @@ export default function ResumeEditor({ user }) {
   const [copied, setCopied] = useState(false)
   const [currentBranch, setCurrentBranch] = useState('main')
   const [showHistory, setShowHistory] = useState(false)
-  const [diff, setDiff] = useState(null)
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -42,7 +41,7 @@ export default function ResumeEditor({ user }) {
     try {
       const resp = await fetch(`${apiUrl}/export-resume`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({ markdown_content: src, latex_content: src, format: 'latex_pdf' }),
       })
       if (!resp.ok) {
@@ -127,7 +126,7 @@ export default function ResumeEditor({ user }) {
             try {
               const resp = await fetch(`${apiUrl}/export-resume`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
                 body: JSON.stringify({ markdown_content: full, format: 'latex' }),
               })
               const latex = await resp.text()
@@ -377,7 +376,6 @@ export default function ResumeEditor({ user }) {
         )}
       </div>
 
-      {diff && <DiffViewer diff={diff} onClose={() => setDiff(null)} />}
     </div>
   )
 }

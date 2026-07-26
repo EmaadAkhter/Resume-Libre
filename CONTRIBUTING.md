@@ -8,21 +8,27 @@ Thanks for your interest in contributing! This guide will get you set up and shi
 - **Python 3.11+** — [download](https://www.python.org/downloads/)
 - **Docker** + **Docker Compose** — [download](https://docs.docker.com/get-docker/)
 - **Tectonic** (LaTeX engine) — `curl -fsSL https://drop-sh.fullyjustified.net | sh` (macOS/Linux) or see [releases](https://github.com/tectonic-typesetting/tectonic/releases)
-- An [OpenRouter](https://openrouter.ai/keys) API key (free tier works)
-- A [Supabase](https://supabase.com) project (free tier works)
+- An [OpenRouter](https://openrouter.ai/keys) API key (free tier works) — *not needed for demo mode*
+- A [Supabase](https://supabase.com) project (free tier works) — *not needed for demo mode*
 
-## Quick Start (Docker)
+## Quick Start — zero keys (demo mode)
+
+The fastest dev loop. No API keys, no Supabase project:
 
 ```bash
-# 1. Clone
 git clone https://github.com/EmaadAkhter/Resume-Libre.git
 cd Resume-Libre
+echo "DEMO_MODE=true" > .env
+docker compose up --build
+```
 
-# 2. Copy environment
+Open http://localhost:3000/demo — generation streams a canned resume and Tectonic compiles a real PDF. Perfect for working on UI, templates, export, or the LaTeX pipeline.
+
+## Quick Start — full stack
+
+```bash
 cp .env.example .env
-# Edit .env with your real keys
-
-# 3. Run everything
+# Edit .env with your OpenRouter + Supabase keys
 docker compose up --build
 ```
 
@@ -60,6 +66,16 @@ Resume-Libre/
 ├── docker-compose.yml            # Dev orchestration
 └── .github/                      # CI/CD, issue/PR templates
 ```
+
+## Good First Contributions
+
+- **LaTeX templates** — the friendliest entry point. See [TEMPLATES.md](TEMPLATES.md); open template issues: [#12](https://github.com/EmaadAkhter/Resume-Libre/issues/12), [#13](https://github.com/EmaadAkhter/Resume-Libre/issues/13), [#14](https://github.com/EmaadAkhter/Resume-Libre/issues/14)
+- **Fresher Wizard** ([#3](https://github.com/EmaadAkhter/Resume-Libre/issues/3)) — the component exists (`FresherWizard.jsx`), it needs routing and intake wiring
+- Anything labeled `good first issue` or `help wanted`
+
+## Licensing of Contributions
+
+Resume-Libre is licensed under **AGPL-3.0**. By submitting a pull request you agree that your contribution is licensed under AGPL-3.0 too. Sign your commits off (`git commit -s`) to certify the [Developer Certificate of Origin](https://developercertificate.org/).
 
 ## Commit Conventions
 
