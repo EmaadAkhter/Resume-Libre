@@ -1,41 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  AlertTriangle,
-  ArrowLeft,
-  CheckCircle,
-  FileSearch,
-  Lightbulb,
-  Loader2,
-  Sparkles,
-  Upload,
-  XCircle,
-} from 'lucide-react'
+import { ArrowLeft, Loader2, Sparkles, Upload } from 'lucide-react'
 import { authHeaders } from '../lib/api'
-
-const STATUS_META = {
-  pass: { Icon: CheckCircle, color: 'text-green-600', label: 'Pass' },
-  warn: { Icon: AlertTriangle, color: 'text-yellow-600', label: 'Warning' },
-  fail: { Icon: XCircle, color: 'text-red-600', label: 'Fail' },
-  info: { Icon: Lightbulb, color: 'text-blue-600', label: 'suggestion' },
-}
-
-const FIELD_LABELS = {
-  email: 'Email',
-  phone: 'Phone',
-  linkedin: 'LinkedIn',
-  github: 'GitHub',
-  name: 'Name',
-  dates: 'Dates',
-  sections: 'Sections',
-  skills: 'Skills',
-}
-
-const CONFIDENCE_META = {
-  high: { className: 'bg-green-100 text-green-700', label: 'high confidence' },
-  medium: { className: 'bg-yellow-100 text-yellow-700', label: 'AI-assisted' },
-  low: { className: 'bg-amber-100 text-amber-700', label: 'low confidence' },
-}
+import AtsReport from '../components/ats/AtsReport'
 
 // The basic check needs no account — the endpoint is unauthenticated by
 // design and everything is processed in memory server-side. Only the
@@ -138,8 +105,6 @@ export default function AtsCheck({ inShell = false }) {
     checkFile(e.dataTransfer.files?.[0])
   }
 
-  const summary = report?.summary
-
   return (
     <div className={inShell ? '' : 'min-h-screen bg-gray-50'}>
       {!inShell && (
@@ -211,100 +176,14 @@ export default function AtsCheck({ inShell = false }) {
 
         {report && (
           <div className="mt-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-gray-900 text-sm truncate pr-4">
-                {report.filename || lastFile?.name}
-              </h2>
-              <span className="text-sm text-gray-600 whitespace-nowrap">
-                {summary.passed} passed · {summary.warned} warnings · {summary.failed} failed
-              </span>
-            </div>
+            <h2 className="font-semibold text-gray-900 text-sm truncate mb-4">
+              {report.filename || lastFile?.name}
+            </h2>
 
-            <div className="space-y-3">
-              {report.checks.map((check) => {
-                const { Icon, color, label } = STATUS_META[check.status] || STATUS_META.warn
-                return (
-                  <div
-                    key={check.id}
-                    className="bg-white rounded-lg border border-gray-200 p-4 flex gap-3"
-                  >
-                    <Icon className={`w-5 h-5 mt-0.5 shrink-0 ${color}`} />
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-gray-900 text-sm">{check.id}</h3>
-                        <span className={`text-xs font-medium ${color}`}>{label}</span>
-                      </div>
-                      <p className="mt-1 text-sm text-gray-600">{check.reason}</p>
-                      {check.status !== 'pass' && (
-                        <p className="mt-1 text-sm text-gray-700">
-                          <span className="font-medium">Fix:</span> {check.fix}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+            <AtsReport report={report} />
 
             {report.extracted && (
-              <div className="mt-8">
-                <div className="flex items-center gap-2 mb-4">
-                  <FileSearch className="w-4 h-4 text-gray-500" />
-                  <h2 className="font-semibold text-gray-900 text-sm">
-                    What an ATS would extract
-                  </h2>
-                </div>
-                <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
-                  {Object.entries(report.extracted).map(([field, result]) => {
-                    const conf = CONFIDENCE_META[result.confidence] || CONFIDENCE_META.low
-                    const value = Array.isArray(result.value)
-                      ? result.value.join(', ')
-                      : result.value
-                    // "not found" without a failure is a plain absence — a
-                    // confidence badge there would imply we parsed something.
-                    const showBadge = result.value != null || result.failed
-                    return (
-                      <div key={field} className="p-4 flex items-start gap-3">
-                        <span className="w-20 shrink-0 text-sm font-medium text-gray-700">
-                          {FIELD_LABELS[field] || field}
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          {field === 'skills' && Array.isArray(result.value) ? (
-                            <div className="flex flex-wrap gap-1.5">
-                              {result.value.map((skill) => (
-                                <span
-                                  key={skill}
-                                  className="px-2 py-0.5 text-xs rounded-full bg-primary-50 text-primary-700 border border-primary-200"
-                                >
-                                  {skill}
-                                </span>
-                              ))}
-                            </div>
-                          ) : value ? (
-                            <p className="text-sm text-gray-900 break-words">{value}</p>
-                          ) : (
-                            <p className="text-sm text-gray-400">not found</p>
-                          )}
-                          {result.failed && (
-                            <p className="mt-1 flex items-center gap-1 text-xs text-red-600">
-                              <XCircle className="w-3.5 h-3.5 shrink-0" />
-                              couldn't parse — something looks like this field but
-                              isn't readable
-                            </p>
-                          )}
-                        </div>
-                        {showBadge && (
-                          <span
-                            className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${conf.className}`}
-                          >
-                            {conf.label}
-                          </span>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-
+              <div className="mt-6">
                 {ambiguousCount > 0 && signedIn === true && (
                   <div className="mt-4">
                     <button
