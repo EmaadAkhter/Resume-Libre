@@ -1,0 +1,73 @@
+% Deedy-style — inspired by Debarghya Das's Deedy-Resume two-column look,
+% rebuilt on the article class with paracol: deedy-resume.cls is not on
+% CTAN so it cannot compile under Tectonic as a single file.
+% Placeholders in {{DOUBLE_BRACES}} are filled by the AI with the user's data.
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=0.5in]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+\usepackage{paracol}
+
+\definecolor{deedyblue}{HTML}{2C6FBB}
+\definecolor{gray}{HTML}{5C5C5C}
+
+\titleformat{\section}{\normalsize\bfseries\color{deedyblue}}{}{0em}{\MakeUppercase}[{\titlerule[0.6pt]}]
+\titlespacing{\section}{0pt}{8pt}{4pt}
+\setlength{\parindent}{0pt}
+\pagestyle{empty}
+
+\begin{document}
+
+\begin{center}
+  {\Huge {{FIRST_NAME}} {\bfseries\color{deedyblue}{{LAST_NAME}}}}\\[3pt]
+  {\small\color{gray} {{HEADLINE}}}\\[4pt]
+  {\footnotesize
+    \href{mailto:{{EMAIL}}}{{{EMAIL}}} | {{PHONE}} | {{LOCATION}} |
+    \href{https://linkedin.com/in/{{LINKEDIN_HANDLE}}}{in/{{LINKEDIN_HANDLE}}} |
+    \href{https://github.com/{{GITHUB_HANDLE}}}{gh/{{GITHUB_HANDLE}}}}
+\end{center}
+
+\columnratio{0.33}
+\begin{paracol}{2}
+
+% ─── Left column ───
+\section{Skills}
+\textbf{Languages}\\ {{LANGUAGES}}\\[4pt]
+\textbf{Frameworks}\\ {{FRAMEWORKS}}\\[4pt]
+\textbf{Tools}\\ {{TOOLS}}
+
+\section{Education}
+\textbf{{{UNIVERSITY}}}\\
+{\small {{DEGREE}}}\\
+{\small\color{gray} {{GRAD_YEAR}}}
+
+\section{Links}
+\href{https://github.com/{{GITHUB_HANDLE}}}{github.com/{{GITHUB_HANDLE}}}\\
+\href{https://linkedin.com/in/{{LINKEDIN_HANDLE}}}{linkedin.com/in/{{LINKEDIN_HANDLE}}}
+
+\switchcolumn
+
+% ─── Right column ───
+\section{Summary}
+{{SUMMARY_2_LINES}}
+
+\section{Experience}
+\textbf{{{COMPANY}}} \textbar\ {{JOB_TITLE}} \hfill {\color{gray}\small {{DATES}}}
+\begin{itemize}[leftmargin=*,nosep,itemsep=2pt]
+  \item {{ACHIEVEMENT_1}}
+  \item {{ACHIEVEMENT_2}}
+  \item {{ACHIEVEMENT_3}}
+\end{itemize}
+
+\section{Projects}
+\textbf{{{PROJECT_NAME}}} \hfill {\color{gray}\small \href{{{PROJECT_URL}}}{link}}
+\begin{itemize}[leftmargin=*,nosep,itemsep=2pt]
+  \item {{PROJECT_DESCRIPTION}}
+  \item {{PROJECT_TECH_STACK}}
+\end{itemize}
+
+\end{paracol}
+
+\end{document}
