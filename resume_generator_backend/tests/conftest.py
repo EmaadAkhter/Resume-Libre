@@ -9,6 +9,13 @@ import pytest
 backend_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_dir))
 
+# MUST be set at conftest import time, not in a fixture: the slowapi limiter
+# is built when core.limiter is first imported, which happens during test
+# COLLECTION for any test module that imports app code at module level.
+# Without this, the limiter points at redis://localhost:6379 — green on any
+# machine with a local Redis, ConnectionError in CI.
+os.environ.setdefault("RATE_LIMIT_STORAGE", "memory://")
+
 
 @pytest.fixture
 def sample_resume_md():
