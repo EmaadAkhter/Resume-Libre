@@ -32,6 +32,13 @@ export default function PublishMenu({ user, resume, pdfUrl }) {
     if (!pdfUrl || busy) return
     setBusy(true)
     try {
+      // A stale/revoked session makes storage RLS fail with a cryptic
+      // "violates row-level security" — catch it here with a clear message.
+      const { data: { session } = {} } = await supabase.auth.getSession()
+      if (!session) {
+        throw new Error('Your session has expired — sign out and back in, then publish again.')
+      }
+
       const blob = await (await fetch(pdfUrl)).blob()
       const { error: upErr } = await supabase.storage
         .from('public-resumes')
