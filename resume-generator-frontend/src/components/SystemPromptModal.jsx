@@ -80,7 +80,7 @@ export default function SystemPromptModal({ onApply }) {
               <textarea
                 value={editor}
                 onChange={(e) => setEditor(e.target.value)}
-                className="w-full h-64 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm"
+                className="w-full h-64 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none font-mono text-sm"
               />
             </div>
             <div className="p-4 border-t border-gray-200 flex flex-col gap-2">
@@ -100,7 +100,7 @@ export default function SystemPromptModal({ onApply }) {
                 </button>
                 <button
                   onClick={handleSave}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition text-sm font-medium"
+                  className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition text-sm font-medium"
                 >
                   Save
                 </button>

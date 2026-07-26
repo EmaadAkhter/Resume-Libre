@@ -15,6 +15,7 @@ import SystemPromptModal from '../components/SystemPromptModal'
 import VersionHistory from '../components/VersionHistory'
 import BranchManager from '../components/BranchManager'
 import ATSScore from '../components/ATSScore'
+import LoadingScreen from '../components/LoadingScreen'
 
 export default function ResumeEditor({ user }) {
   const { resumeId } = useParams()
@@ -283,17 +284,12 @@ export default function ResumeEditor({ user }) {
   }
 
   if (!resume) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-gray-400">
-        Loading resume...
-      </div>
-    )
+    return <LoadingScreen label="Loading resume..." />
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+    <>
+      <div className="flex flex-wrap items-center justify-between gap-y-2 mb-4">
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate('/dashboard')}
@@ -314,7 +310,7 @@ export default function ResumeEditor({ user }) {
               <button
                 onClick={() => setCurrentView('edit')}
                 className={`px-3 py-1.5 text-sm font-medium flex items-center gap-1 ${
-                  currentView === 'edit' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
+                  currentView === 'edit' ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 <Edit className="w-3 h-3" />
@@ -326,7 +322,7 @@ export default function ResumeEditor({ user }) {
                   compilePdf()
                 }}
                 className={`px-3 py-1.5 text-sm font-medium flex items-center gap-1 ${
-                  currentView === 'preview' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
+                  currentView === 'preview' ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 <Eye className="w-3 h-3" />
@@ -361,11 +357,10 @@ export default function ResumeEditor({ user }) {
             >
               History
             </button>
-          </div>
         </div>
-      </header>
+      </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-4 flex gap-4">
+      <div className="flex items-stretch gap-4">
         {/* Left: Form */}
         <div className="w-80 flex-shrink-0">
           <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -373,14 +368,14 @@ export default function ResumeEditor({ user }) {
               <button
                 type="button"
                 onClick={() => setInputMode('standard')}
-                className={`flex-1 px-2 py-1.5 font-medium ${inputMode === 'standard' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600'}`}
+                className={`flex-1 px-2 py-1.5 font-medium ${inputMode === 'standard' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600'}`}
               >
                 Standard
               </button>
               <button
                 type="button"
                 onClick={() => setInputMode('guided')}
-                className={`flex-1 px-2 py-1.5 font-medium ${inputMode === 'guided' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600'}`}
+                className={`flex-1 px-2 py-1.5 font-medium ${inputMode === 'guided' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600'}`}
               >
                 Guided (no GitHub needed)
               </button>
@@ -408,7 +403,7 @@ export default function ResumeEditor({ user }) {
         </div>
 
         {/* Center: Editor/Preview */}
-        <div className="flex-1 bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div className="flex-1 h-[calc(100vh-180px)] bg-white border border-gray-200 rounded-lg overflow-hidden">
           {currentView === 'edit' ? (
             <MarkdownEditor content={resumeContent} onChange={setResumeContent} />
           ) : compilingPdf ? (
@@ -445,7 +440,6 @@ export default function ResumeEditor({ user }) {
           </div>
         )}
       </div>
-
-    </div>
+    </>
   )
 }

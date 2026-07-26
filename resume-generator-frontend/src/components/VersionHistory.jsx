@@ -69,7 +69,7 @@ export default function VersionHistory({ resumeId, user, onViewVersion }) {
               <div
                 key={v.id}
                 className={`p-3 rounded-lg border text-sm cursor-pointer hover:bg-gray-50 ${
-                  i === 0 ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
+                  i === 0 ? 'border-primary-300 bg-primary-50' : 'border-gray-200'
                 }`}
                 onClick={() => onViewVersion?.(v)}
               >
@@ -79,7 +79,7 @@ export default function VersionHistory({ resumeId, user, onViewVersion }) {
                     {new Date(v.created_at).toLocaleString()}
                   </span>
                   {i === 0 && (
-                    <span className="ml-auto text-xs text-blue-600 font-medium">HEAD</span>
+                    <span className="ml-auto text-xs text-primary-600 font-medium">HEAD</span>
                   )}
                 </div>
                 {v.message && <p className="mt-1 text-gray-700">{v.message}</p>}

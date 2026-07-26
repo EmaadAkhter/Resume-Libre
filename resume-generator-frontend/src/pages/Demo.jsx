@@ -90,14 +90,14 @@ export default function Demo() {
             <button
               type="button"
               onClick={() => setInputMode('standard')}
-              className={`flex-1 px-2 py-1.5 font-medium ${inputMode === 'standard' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600'}`}
+              className={`flex-1 px-2 py-1.5 font-medium ${inputMode === 'standard' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600'}`}
             >
               Standard
             </button>
             <button
               type="button"
               onClick={() => setInputMode('guided')}
-              className={`flex-1 px-2 py-1.5 font-medium ${inputMode === 'guided' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600'}`}
+              className={`flex-1 px-2 py-1.5 font-medium ${inputMode === 'guided' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600'}`}
             >
               Guided (no GitHub needed)
             </button>

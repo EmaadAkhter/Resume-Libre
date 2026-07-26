@@ -7,16 +7,14 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import ResumeEditor from './pages/ResumeEditor'
+import AppShell from './components/AppShell'
+import LoadingScreen from './components/LoadingScreen'
 import ToastContainer from './components/ToastContainer'
 import BackendStatusBanner from './components/BackendStatusBanner'
 
 function ProtectedRoute({ children, user, loading }) {
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-gray-400">
-        Loading...
-      </div>
-    )
+    return <LoadingScreen />
   }
   if (!user) {
     return <Navigate to="/login" replace />
@@ -45,7 +43,9 @@ export default function App() {
           path="/dashboard"
           element={
             <ProtectedRoute user={user} loading={loading}>
-              <Dashboard user={user} profile={profile} logout={logout} />
+              <AppShell user={user} profile={profile} logout={logout}>
+                <Dashboard user={user} />
+              </AppShell>
             </ProtectedRoute>
           }
         />
@@ -53,12 +53,25 @@ export default function App() {
           path="/resume/:resumeId"
           element={
             <ProtectedRoute user={user} loading={loading}>
-              <ResumeEditor user={user} />
+              <AppShell user={user} profile={profile} logout={logout}>
+                <ResumeEditor user={user} />
+              </AppShell>
             </ProtectedRoute>
           }
         />
         <Route path="/demo" element={<Demo />} />
-        <Route path="/ats-check" element={<AtsCheck />} />
+        <Route
+          path="/ats-check"
+          element={
+            user ? (
+              <AppShell user={user} profile={profile} logout={logout}>
+                <AtsCheck inShell />
+              </AppShell>
+            ) : (
+              <AtsCheck />
+            )
+          }
+        />
         <Route
           path="/"
           element={user ? <Navigate to="/dashboard" replace /> : <Landing />}

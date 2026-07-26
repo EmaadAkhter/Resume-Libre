@@ -86,7 +86,7 @@ export default function ExportMenu({ resumeContent, latexContent, backendConnect
       <button
         onClick={() => setShowMenu(!showMenu)}
         disabled={exporting}
-        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition text-sm font-medium disabled:opacity-50"
+        className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition text-sm font-medium disabled:opacity-50"
       >
         <Download className="w-4 h-4" />
         {exporting ? 'Exporting...' : 'Export'}

@@ -146,7 +146,7 @@ export default function ResumeForm({
           value={githubUsername}
           onChange={(e) => setGithubUsername(e.target.value)}
           placeholder="e.g., octocat"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm"
         />
         <p className="mt-1 text-xs text-gray-500">We'll fetch your README</p>
       </div>
@@ -158,14 +158,14 @@ export default function ResumeForm({
             <button
               type="button"
               onClick={() => setLinkedinMode('paste')}
-              className={`px-2 py-1 ${linkedinMode === 'paste' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600'}`}
+              className={`px-2 py-1 ${linkedinMode === 'paste' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600'}`}
             >
               Paste text
             </button>
             <button
               type="button"
               onClick={() => setLinkedinMode('url')}
-              className={`px-2 py-1 ${linkedinMode === 'url' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600'}`}
+              className={`px-2 py-1 ${linkedinMode === 'url' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600'}`}
             >
               URL
             </button>
@@ -177,7 +177,7 @@ export default function ResumeForm({
               value={linkedinText}
               onChange={(e) => setLinkedinText(e.target.value)}
               placeholder="Open your LinkedIn profile, select all (Ctrl/Cmd+A), copy, and paste here..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm h-24 resize-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm h-24 resize-none"
             />
             <p className="mt-1 text-xs text-gray-500">
               Fastest & most reliable — no scraping involved
@@ -190,7 +190,7 @@ export default function ResumeForm({
               value={linkedinUrl}
               onChange={(e) => setLinkedinUrl(e.target.value)}
               placeholder="https://linkedin.com/in/username"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm"
             />
             <p className="mt-1 text-xs text-gray-500">
               We'll try to fetch your profile — can take a few minutes and requires the server to
@@ -224,7 +224,7 @@ export default function ResumeForm({
         />
         <label
           htmlFor="resumeUpload"
-          className={`w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition text-gray-600 text-sm font-medium flex items-center justify-center gap-2 ${
+          className={`w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition text-gray-600 text-sm font-medium flex items-center justify-center gap-2 ${
             loading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
           }`}
         >
@@ -273,7 +273,7 @@ export default function ResumeForm({
           <div
             onClick={() => setPriority('experience')}
             className={`border-2 rounded-lg p-3 cursor-pointer transition ${
-              priority === 'experience' ? 'border-blue-600 bg-blue-50' : 'border-gray-200'
+              priority === 'experience' ? 'border-primary-600 bg-primary-50' : 'border-gray-200'
             }`}
           >
             <div className="flex items-start gap-2">
@@ -292,7 +292,7 @@ export default function ResumeForm({
           <div
             onClick={() => setPriority('projects')}
             className={`border-2 rounded-lg p-3 cursor-pointer transition ${
-              priority === 'projects' ? 'border-blue-600 bg-blue-50' : 'border-gray-200'
+              priority === 'projects' ? 'border-primary-600 bg-primary-50' : 'border-gray-200'
             }`}
           >
             <div className="flex items-start gap-2">
@@ -311,7 +311,7 @@ export default function ResumeForm({
           <div
             onClick={() => setPriority('balanced')}
             className={`border-2 rounded-lg p-3 cursor-pointer transition ${
-              priority === 'balanced' ? 'border-blue-600 bg-blue-50' : 'border-gray-200'
+              priority === 'balanced' ? 'border-primary-600 bg-primary-50' : 'border-gray-200'
             }`}
           >
             <div className="flex items-start gap-2">
@@ -338,7 +338,7 @@ export default function ResumeForm({
           value={additionalInfo}
           onChange={(e) => setAdditionalInfo(e.target.value)}
           placeholder="Add any extra details: email, phone, work experience, skills not in your GitHub..."
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm h-32 resize-none"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm h-32 resize-none"
         />
       </div>
 
@@ -352,7 +352,7 @@ export default function ResumeForm({
             value={jobDescription}
             onChange={(e) => setJobDescription(e.target.value)}
             placeholder="Paste job description here — AI will tailor the resume to match..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm h-28 resize-none"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm h-28 resize-none"
           />
           {roles.length > 0 && (
             <div>
@@ -380,7 +380,7 @@ export default function ResumeForm({
       <button
         onClick={handleGenerate}
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition text-sm font-medium disabled:opacity-50"
+        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition text-sm font-medium disabled:opacity-50"
       >
         <Sparkles className="w-4 h-4" />
         {loading ? 'Generating...' : 'Generate Resume'}

@@ -27,7 +27,7 @@ export default function Landing() {
           </Link>
           <Link
             to="/register"
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition"
+            className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition"
           >
             Get started
           </Link>
@@ -40,7 +40,7 @@ export default function Landing() {
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight">
             Your GitHub profile,
             <br />
-            <span className="text-blue-600">turned into a resume that gets read.</span>
+            <span className="text-primary-600">turned into a resume that gets read.</span>
           </h1>
           <p className="mt-6 text-lg text-gray-600 max-w-2xl mx-auto">
             Point Resume-Libre at your GitHub, paste your LinkedIn, add a job description — get a
@@ -50,7 +50,7 @@ export default function Landing() {
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               to="/register"
-              className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition flex items-center justify-center gap-2"
             >
               <Sparkles className="w-4 h-4" />
               Generate your resume
@@ -86,32 +86,32 @@ export default function Landing() {
         <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
           {[
             {
-              icon: <FileText className="w-5 h-5 text-blue-600" />,
+              icon: <FileText className="w-5 h-5 text-primary-600" />,
               title: 'Real LaTeX, real PDFs',
               body: 'Every resume is a compilable LaTeX document rendered by Tectonic — the typesetting that recruiters recognize, not a styled web page.',
             },
             {
-              icon: <Sparkles className="w-5 h-5 text-blue-600" />,
+              icon: <Sparkles className="w-5 h-5 text-primary-600" />,
               title: 'Tailored to the job',
               body: 'Paste a job description and the AI reshapes your experience, projects, and skills to match the role.',
             },
             {
-              icon: <GitBranch className="w-5 h-5 text-blue-600" />,
+              icon: <GitBranch className="w-5 h-5 text-primary-600" />,
               title: 'Version control built in',
               body: 'Branches, commits, and history for your resume — try a variant for every application without losing the original.',
             },
             {
-              icon: <Github className="w-5 h-5 text-blue-600" />,
+              icon: <Github className="w-5 h-5 text-primary-600" />,
               title: 'Starts from your GitHub',
               body: 'Your profile README and projects become the raw material. Add LinkedIn by pasting your profile text — no scraping required.',
             },
             {
-              icon: <Server className="w-5 h-5 text-blue-600" />,
+              icon: <Server className="w-5 h-5 text-primary-600" />,
               title: 'Self-hostable',
               body: 'AGPL-3.0 open source. Run the whole stack — frontend, API, LaTeX compiler — on your own machine with Docker Compose.',
             },
             {
-              icon: <ShieldCheck className="w-5 h-5 text-blue-600" />,
+              icon: <ShieldCheck className="w-5 h-5 text-primary-600" />,
               title: 'Privacy first',
               body: 'Uploads are processed in memory and never written to disk. Your resumes are yours — row-level security keeps it that way.',
             },

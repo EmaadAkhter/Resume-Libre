@@ -89,7 +89,7 @@ export default function TemplateUploader({ user, onUpload }) {
                 />
                 <label
                   htmlFor="templateFile"
-                  className="w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition text-gray-600 text-sm font-medium flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition text-gray-600 text-sm font-medium flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Upload className="w-4 h-4" />
                   Choose file
@@ -102,7 +102,7 @@ export default function TemplateUploader({ user, onUpload }) {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm"
                 />
               </div>
 
@@ -112,7 +112,7 @@ export default function TemplateUploader({ user, onUpload }) {
                   type="text"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm"
                 />
               </div>
 
@@ -121,7 +121,7 @@ export default function TemplateUploader({ user, onUpload }) {
                 <select
                   value={format}
                   onChange={(e) => setFormat(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm bg-white"
                 >
                   <option value="md">Markdown (.md)</option>
                   <option value="tex">LaTeX (.tex)</option>
@@ -133,7 +133,7 @@ export default function TemplateUploader({ user, onUpload }) {
                 <textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm font-mono h-48 resize-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm font-mono h-48 resize-none"
                   placeholder="Paste template content or upload a file above..."
                 />
               </div>
@@ -161,7 +161,7 @@ export default function TemplateUploader({ user, onUpload }) {
               <button
                 onClick={handleSubmit}
                 disabled={uploading}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition text-sm font-medium disabled:opacity-50"
+                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition text-sm font-medium disabled:opacity-50"
               >
                 {uploading ? 'Uploading...' : 'Save Template'}
               </button>
