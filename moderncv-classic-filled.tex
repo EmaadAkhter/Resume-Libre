@@ -1,0 +1,43 @@
+\documentclass[10pt,a4paper,sans]{moderncv}
+\moderncvstyle{classic}
+\moderncvcolor{blue}
+\usepackage[scale=0.82]{geometry}
+
+\name{Jane}{Doe}
+\title{Full-Stack Engineer}
+\phone[mobile]{+1 555 123 4567}
+\email{jane@example.com}
+\social[linkedin]{janedoe}
+\social[github]{janedoe}
+
+\begin{document}
+
+\makecvtitle
+
+\section{Summary}
+\cvitem{}{Engineer with 4 years building web platforms. Shipped three products end to end.}
+
+\section{Experience}
+\cventry{Jan 2022 -- Present}{Software Engineer}{TechCorp}{San Francisco, CA}{}{%
+\begin{itemize}
+\item Built microservices processing 1M+ requests daily
+\item Cut infra costs 30\%
+\item Led team of 4
+\end{itemize}}
+
+\section{Projects}
+\cventry{}{OpenBoard}{}{}{}{%
+\begin{itemize}
+\item Realtime collaborative whiteboard
+\item React, FastAPI, Redis
+\end{itemize}}
+
+\section{Skills}
+\cvitem{Languages}{Python, JavaScript, Go}
+\cvitem{Frameworks}{React, FastAPI}
+\cvitem{Tools}{Docker, Postgres}
+
+\section{Education}
+\cventry{2021}{B.S. Computer Science}{State University}{}{}{}
+
+\end{document}
