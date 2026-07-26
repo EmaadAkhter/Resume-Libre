@@ -66,7 +66,11 @@ export default function Landing() {
             </a>
           </div>
           <p className="mt-4 text-xs text-gray-500">
-            Free while in beta · Self-host with one command:{' '}
+            Free while in beta ·{' '}
+            <Link to="/demo" className="underline hover:text-gray-700">
+              try the demo without an account
+            </Link>{' '}
+            · Self-host with one command:{' '}
             <code className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-700">docker compose up</code>
           </p>
         </section>

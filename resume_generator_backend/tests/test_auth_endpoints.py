@@ -73,3 +73,32 @@ def test_demo_mode_bypasses_auth(monkeypatch):
     client = TestClient(app)
     response = client.post("/generate-resume", json={})
     assert response.status_code == 400  # handler 400, not auth 401
+
+
+def test_demo_request_header_serves_fixture(monkeypatch):
+    monkeypatch.delenv("DEMO_MODE", raising=False)
+    monkeypatch.setenv("ALLOW_DEMO_REQUESTS", "true")
+    from main import app
+
+    client = TestClient(app)
+    response = client.post(
+        "/generate-resume",
+        json={"github_username": "octocat"},
+        headers={"X-Demo-Mode": "true"},
+    )
+    assert response.status_code == 200
+    assert "\\documentclass" in response.json()["resume"]
+
+
+def test_demo_header_ignored_when_not_allowed(monkeypatch):
+    monkeypatch.delenv("DEMO_MODE", raising=False)
+    monkeypatch.delenv("ALLOW_DEMO_REQUESTS", raising=False)
+    from main import app
+
+    client = TestClient(app)
+    response = client.post(
+        "/generate-resume",
+        json={"github_username": "octocat"},
+        headers={"X-Demo-Mode": "true"},
+    )
+    assert response.status_code == 401

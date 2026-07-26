@@ -25,6 +25,17 @@ def load_system_prompt() -> str:
 SYSTEM_PROMPT = load_system_prompt()
 
 
+def _load_demo_resume() -> str:
+    """Canned LaTeX output for DEMO_MODE — no API keys, no LLM cost.
+
+    Tectonic still compiles it for real, so the demo is visually genuine.
+    """
+    from pathlib import Path
+
+    path = Path(__file__).parent.parent / "fixtures" / "demo_resume.tex"
+    return path.read_text(encoding="utf-8")
+
+
 def _get_client() -> OpenAI:
     api_key = os.getenv("OPENROUTER_API_KEY")
     if not api_key:
@@ -45,6 +56,7 @@ async def generate_resume_content(
     user_prompt: str,
     custom_system_prompt: Optional[str] = None,
     template_format: str = "md",
+    demo: bool = False,
 ) -> str:
     """Generate a resume via OpenRouter.
 
@@ -53,6 +65,11 @@ async def generate_resume_content(
         custom_system_prompt: Optional override for the system prompt.
         template_format: 'md' or 'tex' — determines output format instruction.
     """
+    from core.deps import is_demo_mode
+
+    if demo or is_demo_mode():
+        return _load_demo_resume()
+
     system_prompt = custom_system_prompt if custom_system_prompt else SYSTEM_PROMPT
     system_prompt += (
         "\n\nOUTPUT FORMAT — COMPLETE LaTeX DOCUMENT:\n"
@@ -116,11 +133,20 @@ async def generate_resume_stream(
     user_prompt: str,
     custom_system_prompt: Optional[str] = None,
     template_format: str = "md",
+    demo: bool = False,
 ):
     """Stream resume generation token by token via OpenRouter.
 
     Yields individual token strings as they arrive.
     """
+    from core.deps import is_demo_mode
+
+    if demo or is_demo_mode():
+        canned = _load_demo_resume()
+        for i in range(0, len(canned), 64):
+            yield canned[i : i + 64]
+        return
+
     system_prompt = custom_system_prompt if custom_system_prompt else SYSTEM_PROMPT
     system_prompt += (
         "\n\nOUTPUT FORMAT — COMPLETE LaTeX DOCUMENT:\n"

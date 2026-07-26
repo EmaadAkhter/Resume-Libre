@@ -33,6 +33,7 @@ async def create_resume(
 
     try:
         resume = await pipeline.run(
+            demo=user.get("demo", False),
             github_username=body.github_username or "",
             linkedin_url=body.linkedin_url or "",
             additional_info=body.additional_info or "",
@@ -83,6 +84,7 @@ async def stream_resume_generation(
         full_content = ""
         try:
             async for token in pipeline.run_stream(
+                demo=user.get("demo", False),
                 github_username=github_username or "",
                 linkedin_url=linkedin_url or "",
                 additional_info=additional_info or "",

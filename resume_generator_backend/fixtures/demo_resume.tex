@@ -1,0 +1,60 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=0.55in]{geometry}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+
+\definecolor{awesome}{HTML}{0395DE}
+\definecolor{darktext}{HTML}{414141}
+
+\titleformat{\section}{\large\bfseries\color{darktext}}{}{0em}{}[{\color{awesome}\titlerule[1.2pt]}]
+\titlespacing{\section}{0pt}{10pt}{6pt}
+\setlength{\parindent}{0pt}
+\pagestyle{empty}
+
+\begin{document}
+
+\begin{center}
+  {\Huge Jane {\bfseries\color{awesome}Doe}}\\[4pt]
+  {\small\color{darktext} Full-Stack Engineer (Demo)}\\[6pt]
+  {\footnotesize
+    \href{mailto:jane@example.com}{jane@example.com} \textbar\
+    +1 555 123 4567 \textbar\ San Francisco, CA \textbar\
+    \href{https://linkedin.com/in/janedoe}{linkedin.com/in/janedoe} \textbar\
+    \href{https://github.com/janedoe}{github.com/janedoe}}
+\end{center}
+
+\section{Summary}
+Engineer with 4 years building web platforms end to end. This resume is canned demo output --- add API keys for real generation.
+
+\section{Experience}
+\textbf{Software Engineer} \hfill {\color{awesome}\small Jan 2022 -- Present}\\
+{\small\itshape TechCorp — San Francisco, CA}
+\begin{itemize}[leftmargin=*,nosep,itemsep=2pt]
+  \item Built microservices processing 1M+ requests daily
+  \item Cut infrastructure costs 30\% by consolidating services
+  \item Led a team of 4 through a zero-downtime platform migration
+\end{itemize}
+
+\section{Projects}
+\textbf{OpenBoard} \hfill {\color{awesome}\small \href{https://github.com/janedoe/openboard}{link}}
+\begin{itemize}[leftmargin=*,nosep,itemsep=2pt]
+  \item Realtime collaborative whiteboard with CRDT sync
+  \item React, FastAPI, Redis, WebSockets
+\end{itemize}
+
+\section{Skills}
+\begin{itemize}[leftmargin=*,nosep,itemsep=2pt]
+  \item \textbf{Languages:} Python, JavaScript, Go
+  \item \textbf{Frameworks:} React, FastAPI
+  \item \textbf{Tools:} Docker, Postgres, Redis
+\end{itemize}
+
+\section{Education}
+\textbf{B.S. Computer Science} \hfill {\color{awesome}\small 2021}\\
+{\small\itshape State University}
+
+\end{document}

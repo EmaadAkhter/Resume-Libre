@@ -41,15 +41,26 @@ async def verify_jwt(
 
 
 def is_demo_mode() -> bool:
+    """Global demo: the whole instance serves canned fixtures (zero-config self-host)."""
     return os.getenv("DEMO_MODE", "").lower() in ("1", "true", "yes")
 
 
-async def require_user_or_demo(request: Request) -> dict:
-    """Require a valid Supabase JWT, unless DEMO_MODE is enabled.
+def _is_demo_request(request: Request) -> bool:
+    """Per-request demo: production keeps real generation for logged-in users,
+    but lets anonymous visitors try the canned demo via the X-Demo-Mode header
+    when ALLOW_DEMO_REQUESTS is enabled. Costs nothing — fixtures, no LLM."""
+    return (
+        os.getenv("ALLOW_DEMO_REQUESTS", "").lower() in ("1", "true", "yes")
+        and request.headers.get("X-Demo-Mode", "").lower() == "true"
+    )
 
-    Demo mode serves canned fixtures at zero LLM cost, so auth is skipped there.
+
+async def require_user_or_demo(request: Request) -> dict:
+    """Require a valid Supabase JWT, unless this is a demo request.
+
+    Demo requests serve canned fixtures at zero LLM cost, so auth is skipped.
     """
-    if is_demo_mode():
+    if is_demo_mode() or _is_demo_request(request):
         return {"id": "demo", "email": "demo@localhost", "demo": True}
 
     auth_header = request.headers.get("Authorization", "")
