@@ -53,6 +53,7 @@ def build_user_prompt(
     resume_template: str | None = None,
     linkedin_data: dict | None = None,
     job_description: str = "",
+    ats_feedback: str | None = None,
 ) -> str:
     contact = extract_contact_info(additional_info + " " + readme_content)
 
@@ -150,6 +151,16 @@ AVAILABLE INFORMATION:
     if job_description and job_description.strip():
         prompt += f"\n\n--- Target Job Description ---\n{job_description}\n"
         prompt += "Match keywords naturally. Reorder to highlight relevant items. Never fabricate.\n"
+
+    if ats_feedback:
+        prompt += (
+            "\n\n--- PARSEABILITY ISSUES IN PREVIOUS VERSION ---\n"
+            "The compiled PDF failed these machine checks. You MUST address "
+            "every one of them in the LaTeX you produce now:\n"
+            f"{ats_feedback}\n"
+            "Rules: keep the same factual content — fix formatting, fonts, "
+            "structure, and wording style only. Never invent new facts.\n"
+        )
 
     section_order = (
         "Contact → Summary → Experience → Projects → Skills → Education"

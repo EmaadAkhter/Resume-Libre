@@ -9,23 +9,42 @@ import fitz
 import pytest
 from fastapi.testclient import TestClient
 
+# Long enough (>200 words) that the resume-length band check passes too.
 CLEAN_RESUME_TEXT = """John Doe
 john.doe@example.com | +1 555-123-4567 | San Francisco, CA
 
 Summary
 Full-stack engineer with five years of experience building web applications
-and developer tools used by thousands of people every day.
+and developer tools used by thousands of people every day. Comfortable
+owning services end to end, from database schema design through deployment
+pipelines, monitoring, and incident response in production environments.
 
 Experience
 Software Engineer at TechCorp from 2020 to Present
 Built microservices that process one million API requests daily.
 Led the migration from a monolith to microservices architecture.
+Designed caching layers that cut median response latency from 240ms to 90ms.
+Automated the release pipeline, reducing deploy time from hours to minutes.
+Mentored four junior engineers through structured code review and pairing.
+
+Junior Developer at WebStart from 2018 to 2020
+Developed customer dashboards in React and TypeScript for analytics teams.
+Implemented integration tests that raised backend coverage from 40 to 85
+percent across three services and caught regressions before every release.
+Optimized SQL queries powering the billing report, saving hours of batch
+time each week and unblocking the finance team's monthly close process.
+
+Projects
+OpenMetrics, an open source metrics collector with over one thousand stars.
+Implemented a plugin system and wrote documentation adopted by the community.
+BudgetTracker, a personal finance application with automatic categorization
+of transactions, budget alerts, and exports that users rely on every month.
 
 Education
 B.S. in Computer Science, State University, 2019
 
 Skills
-Python, JavaScript, Go, PostgreSQL, Docker, Kubernetes
+Python, JavaScript, Go, PostgreSQL, Docker, Kubernetes, Redis, Terraform
 """
 
 LEFT_COLUMN_TEXT = """Skills
@@ -90,8 +109,10 @@ def test_clean_single_column_pdf_passes_all_checks(client):
     assert resp.status_code == 200
     body = resp.json()
     assert body["filename"] == "resume.pdf"
-    # 7 original checks + link-only-contact + header-footer-contact
-    assert body["summary"] == {"passed": 9, "warned": 0, "failed": 0}
+    # 9 v1.1 checks + the 7 document-shape battery checks (page-count,
+    # resume-length, font-count, tiny-font, images, special-characters,
+    # margins)
+    assert body["summary"] == {"passed": 16, "warned": 0, "failed": 0}
     assert all(c["status"] == "pass" for c in body["checks"])
     assert "score" not in body  # checklist only, no blended score
 

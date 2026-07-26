@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Save, Eye, Edit, Copy, Check } from 'lucide-react'
+import { ArrowLeft, Save, Eye, Edit, Copy, Check, FileSearch, Sparkles } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { eventBus } from '../lib/eventBus'
 import { EVENTS } from '../lib/eventTypes'
@@ -15,8 +15,19 @@ import SystemPromptModal from '../components/SystemPromptModal'
 import VersionHistory from '../components/VersionHistory'
 import BranchManager from '../components/BranchManager'
 import ATSScore from '../components/ATSScore'
-import AtsReport from '../components/ats/AtsReport'
+import AtsReport, { CHECK_TITLES } from '../components/ats/AtsReport'
 import LoadingScreen from '../components/LoadingScreen'
+
+// One line per non-passing check, in the shape the regeneration prompt
+// expects. Capped so it always fits the backend's 4000-char query limit.
+export function buildAtsFeedback(report) {
+  if (!report?.checks) return ''
+  return report.checks
+    .filter((c) => c.status === 'fail' || c.status === 'warn' || c.status === 'info')
+    .map((c) => `- ${CHECK_TITLES[c.id] || c.id}: ${c.reason} Fix: ${c.fix}`)
+    .join('\n')
+    .slice(0, 3500)
+}
 
 export default function ResumeEditor({ user }) {
   const { resumeId } = useParams()
@@ -40,6 +51,7 @@ export default function ResumeEditor({ user }) {
   const [atsLoading, setAtsLoading] = useState(false)
   const [atsError, setAtsError] = useState(null)
   const [parseReport, setParseReport] = useState(null)
+  const [lastParams, setLastParams] = useState(null)
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -166,6 +178,10 @@ export default function ResumeEditor({ user }) {
     // FresherWizard omits these — fall back to the editor's selections
     params.resume_template ??= selectedTemplate?.content
     params.priority ??= 'experience'
+
+    // Remembered so "Fix issues & regenerate" can replay this run with
+    // the parseability findings appended.
+    setLastParams(params)
 
     const jobDescription = params.job_description?.trim() || ''
     const targetRole = params.target_role || ''
@@ -309,6 +325,17 @@ export default function ResumeEditor({ user }) {
     return <LoadingScreen label="Loading resume..." />
   }
 
+  const parseIssueCount = parseReport
+    ? parseReport.checks.filter((c) => ['fail', 'warn', 'info'].includes(c.status)).length
+    : 0
+  const atsDotColor = parseReport
+    ? parseReport.summary.failed > 0
+      ? 'bg-red-500'
+      : parseReport.summary.warned > 0
+        ? 'bg-amber-400'
+        : 'bg-emerald-500'
+    : null
+
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-y-2 mb-4">
@@ -349,6 +376,21 @@ export default function ResumeEditor({ user }) {
               >
                 <Eye className="w-3 h-3" />
                 Preview
+              </button>
+              <button
+                onClick={() => setCurrentView('ats')}
+                className={`px-3 py-1.5 text-sm font-medium flex items-center gap-1 ${
+                  currentView === 'ats' ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <FileSearch className="w-3 h-3" />
+                ATS
+                {atsDotColor && (
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${atsDotColor}`}
+                    aria-hidden="true"
+                  />
+                )}
               </button>
             </div>
 
@@ -422,27 +464,42 @@ export default function ResumeEditor({ user }) {
               <ATSScore result={atsScore} loading={atsLoading} error={atsError} />
             </div>
           )}
-          {parseReport && (
-            <details className="mt-4 bg-white border border-gray-200 rounded-xl p-4 group">
-              <summary className="cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-semibold text-gray-900">Parseability</h3>
-                  <span className="text-xs text-gray-400 group-open:hidden">expand</span>
-                  <span className="text-xs text-gray-400 hidden group-open:inline">collapse</span>
-                </div>
-                <AtsReport report={parseReport} compact />
-              </summary>
-              <div className="mt-3 border-t border-gray-100 pt-3">
-                <AtsReport report={parseReport} />
-              </div>
-            </details>
-          )}
         </div>
 
-        {/* Center: Editor/Preview */}
+        {/* Center: Editor/Preview/ATS */}
         <div className="flex-1 h-[calc(100vh-180px)] bg-white border border-gray-200 rounded-lg overflow-hidden">
           {currentView === 'edit' ? (
             <MarkdownEditor content={resumeContent} onChange={setResumeContent} />
+          ) : currentView === 'ats' ? (
+            <div className="h-full overflow-y-auto p-5">
+              {parseReport ? (
+                <div className="space-y-4">
+                  <AtsReport report={parseReport} />
+                  {parseIssueCount > 0 && lastParams && (
+                    <button
+                      onClick={() =>
+                        handleGenerate({
+                          ...lastParams,
+                          ats_feedback: buildAtsFeedback(parseReport),
+                        })
+                      }
+                      disabled={loading}
+                      className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      {loading
+                        ? 'Regenerating...'
+                        : `Fix ${parseIssueCount} issue${parseIssueCount === 1 ? '' : 's'} & regenerate`}
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-400 text-sm text-center px-8">
+                  Generate a resume — the parseability check runs automatically after each
+                  compile.
+                </div>
+              )}
+            </div>
           ) : compilingPdf ? (
             <div className="flex items-center justify-center h-full text-gray-400 text-sm">
               Compiling PDF...
