@@ -1,13 +1,20 @@
-"""POST /ats/check — stateless resume parseability checker.
+"""ATS endpoints.
 
-Unauthenticated by design: it is pure-CPU, top-of-funnel, and rate-limited
-per IP. The upload is processed entirely in memory and never written to
-disk (PII policy, see PRIVACY.md).
+POST /ats/check — stateless resume parseability checker. Unauthenticated
+by design: it is pure-CPU, top-of-funnel, and rate-limited per IP.
+
+POST /ats/extract — rules extraction plus LLM fallback for the ambiguous
+fields. Requires auth (or demo) because it spends LLM tokens.
+
+Uploads are processed entirely in memory and never written to disk
+(PII policy, see PRIVACY.md).
 """
 
-from fastapi import APIRouter, File, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 
 from ats import checks, extraction, extractors, input_handler, layout, report
+from ats.llm_fallback import resolve_low_confidence
+from core.deps import require_user_or_demo
 from core.limiter import limiter
 
 router = APIRouter(prefix="/ats", tags=["ats"])
@@ -62,3 +69,43 @@ async def check_resume(request: Request, file: UploadFile = File(...)):
 
     extracted = extraction.extract_fields_rules(best_text)
     return report.build_report(file.filename, results, extracted)
+
+
+@router.post("/extract")
+@limiter.limit("10/hour")
+async def extract_fields(
+    request: Request,
+    file: UploadFile = File(...),
+    user: dict = Depends(require_user_or_demo),
+):
+    data = await file.read()
+    kind = input_handler.validate_upload(file.filename, data)
+
+    try:
+        if kind == "pdf":
+            # Same best-text choice as /ats/check: pdfplumber's extraction.
+            text = extractors.extract_pdf_pdfplumber(data)
+            if input_handler.is_scanned(text):
+                raise HTTPException(
+                    status_code=422,
+                    detail="This PDF has no extractable text — it looks like a "
+                    "scan or photo export. AI field extraction needs real text; "
+                    "export a text-based PDF from your editor.",
+                )
+        else:
+            text, _ = extractors.extract_docx(data)
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(
+            status_code=400,
+            detail="Could not parse this file — it may be corrupted or "
+            "password-protected.",
+        )
+
+    rules = extraction.extract_fields_rules(text)
+    resolved = await resolve_low_confidence(text, rules, demo=user.get("demo", False))
+    return {
+        "filename": file.filename,
+        "extracted": {field: result.model_dump() for field, result in resolved.items()},
+    }
