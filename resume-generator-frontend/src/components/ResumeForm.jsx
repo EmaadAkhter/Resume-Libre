@@ -19,6 +19,8 @@ export default function ResumeForm({
   const [linkedinUrl, setLinkedinUrl] = useState('')
   const [linkedinMode, setLinkedinMode] = useState('paste') // 'paste' | 'url'
   const [linkedinText, setLinkedinText] = useState('')
+  const [hfUsername, setHfUsername] = useState('')
+  const [orcidId, setOrcidId] = useState('')
   const [additionalInfo, setAdditionalInfo] = useState('')
   const [jobDescription, setJobDescription] = useState('')
   const [targetRole, setTargetRole] = useState('')
@@ -126,6 +128,8 @@ export default function ResumeForm({
     onGenerate({
       github_username: githubUsername || null,
       linkedin_url: linkedinMode === 'url' ? linkedinUrl || null : null,
+      hf_username: hfUsername.trim() || null,
+      orcid_id: orcidId.trim() || null,
       additional_info: info || null,
       job_description: jobDescription || null,
       target_role: targetRole || null,
@@ -199,6 +203,47 @@ export default function ResumeForm({
           </>
         )}
       </div>
+
+      <details className="group">
+        <summary className="cursor-pointer text-sm font-medium text-gray-700 list-none flex items-center gap-2">
+          <span className="group-open:rotate-90 transition-transform inline-block">▶</span>
+          More profiles (optional)
+        </summary>
+        <div className="mt-2 space-y-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              HuggingFace username
+            </label>
+            <input
+              type="text"
+              value={hfUsername}
+              onChange={(e) => setHfUsername(e.target.value)}
+              placeholder="e.g., mistralai"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Models, datasets and spaces are pulled automatically
+            </p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">ORCID iD</label>
+            <input
+              type="text"
+              value={orcidId}
+              onChange={(e) => setOrcidId(e.target.value)}
+              placeholder="0000-0002-1825-0097"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Publications and affiliations for academic resumes
+            </p>
+          </div>
+          <p className="text-xs text-gray-500">
+            Kaggle or Behance? Paste your best results into Additional Information — their APIs
+            require keys we can't ask you for.
+          </p>
+        </div>
+      </details>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Template</label>

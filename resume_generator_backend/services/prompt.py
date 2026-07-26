@@ -54,6 +54,8 @@ def build_user_prompt(
     linkedin_data: dict | None = None,
     job_description: str = "",
     ats_feedback: str | None = None,
+    hf_data: dict | None = None,
+    orcid_data: dict | None = None,
 ) -> str:
     contact = extract_contact_info(additional_info + " " + readme_content)
 
@@ -132,6 +134,45 @@ AVAILABLE INFORMATION:
         ]
         if langs:
             prompt += f"Languages: {', '.join(langs)}\n"
+
+    if hf_data:
+        prompt += "\n\n--- HuggingFace Profile ---\n"
+        for model in hf_data.get("models", []):
+            prompt += (
+                f"Model: {model.get('id', '')} — {model.get('downloads', 0)} downloads, "
+                f"{model.get('likes', 0)} likes\n"
+            )
+        for dataset in hf_data.get("datasets", []):
+            prompt += (
+                f"Dataset: {dataset.get('id', '')} — {dataset.get('downloads', 0)} downloads, "
+                f"{dataset.get('likes', 0)} likes\n"
+            )
+        for space in hf_data.get("spaces", []):
+            prompt += f"Space: {space.get('id', '')} — {space.get('likes', 0)} likes\n"
+
+    if orcid_data:
+        prompt += "\n\n--- ORCID Research Profile ---\n"
+        if orcid_data.get("name"):
+            prompt += f"Name: {orcid_data['name']}\n"
+        if orcid_data.get("employments"):
+            prompt += "Affiliations:\n"
+            for emp in orcid_data["employments"]:
+                prompt += (
+                    f"- {emp.get('role', '')}, {emp.get('org', '')} "
+                    f"({emp.get('start', '')}–{emp.get('end', '')})\n"
+                )
+        if orcid_data.get("educations"):
+            prompt += "Education:\n"
+            for edu in orcid_data["educations"]:
+                prompt += f"- {edu.get('degree', '')}, {edu.get('org', '')} ({edu.get('year', '')})\n"
+        if orcid_data.get("works"):
+            prompt += "Publications:\n"
+            for work in orcid_data["works"]:
+                year = work.get("year", "")
+                prompt += f"- {work.get('title', '')}"
+                if year:
+                    prompt += f" ({year})"
+                prompt += "\n"
 
     prompt += "\n\n--- Additional User Information ---\n"
     prompt += (

@@ -6,6 +6,8 @@ from pydantic import BaseModel, Field, model_validator
 class ResumeRequest(BaseModel):
     github_username: str | None = None
     linkedin_url: str | None = None
+    hf_username: str | None = Field(None, max_length=60)
+    orcid_id: str | None = Field(None, max_length=60)
     additional_info: str | None = None
     job_description: str | None = None
     priority: Literal["experience", "projects", "balanced"] = "experience"
