@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Download, FileText, FileType, FileCode } from 'lucide-react'
 import { eventBus } from '../lib/eventBus'
 import { EVENTS } from '../lib/eventTypes'
+import { authHeaders } from '../lib/api'
 
 export default function ExportMenu({ resumeContent, latexContent, backendConnected }) {
   const [showMenu, setShowMenu] = useState(false)
@@ -37,7 +38,7 @@ export default function ExportMenu({ resumeContent, latexContent, backendConnect
 
       const response = await fetch(`${apiUrl}/export-resume`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify(body),
       })
 

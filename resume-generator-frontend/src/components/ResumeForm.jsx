@@ -3,6 +3,7 @@ import { FileText, Settings, Sparkles, Upload } from 'lucide-react'
 import TemplatePicker from './TemplatePicker'
 import { eventBus } from '../lib/eventBus'
 import { EVENTS } from '../lib/eventTypes'
+import { authHeaders } from '../lib/api'
 
 export default function ResumeForm({
   onGenerate,
@@ -45,6 +46,7 @@ export default function ResumeForm({
     try {
       const response = await fetch(`${apiUrl}/extract-resume`, {
         method: 'POST',
+        headers: await authHeaders(),
         body: formData,
       })
 

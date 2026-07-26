@@ -37,7 +37,8 @@ def test_get_system_prompt(mock_get_client):
 
 
 @patch("services.auth.get_supabase_client")
-def test_generate_resume_requires_input(mock_get_client):
+def test_generate_resume_requires_input(mock_get_client, monkeypatch):
+    monkeypatch.setenv("DEMO_MODE", "true")
     from main import app
 
     client = TestClient(app)
@@ -47,7 +48,8 @@ def test_generate_resume_requires_input(mock_get_client):
 
 
 @patch("services.auth.get_supabase_client")
-def test_extract_resume_unsupported_format(mock_get_client):
+def test_extract_resume_unsupported_format(mock_get_client, monkeypatch):
+    monkeypatch.setenv("DEMO_MODE", "true")
     from main import app
 
     client = TestClient(app)
@@ -61,7 +63,8 @@ def test_extract_resume_unsupported_format(mock_get_client):
 
 
 @patch("services.auth.get_supabase_client")
-def test_export_resume_invalid_format(mock_get_client):
+def test_export_resume_invalid_format(mock_get_client, monkeypatch):
+    monkeypatch.setenv("DEMO_MODE", "true")
     from main import app
 
     client = TestClient(app)

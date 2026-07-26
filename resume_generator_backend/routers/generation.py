@@ -1,13 +1,14 @@
 import io
 import json
 
-from fastapi import APIRouter, HTTPException, Request, UploadFile, File, Query
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File, Query
 from fastapi.responses import StreamingResponse
 from typing import Optional
 
 import pypdf
 import docx
 
+from core.deps import require_user_or_demo
 from core.limiter import limiter
 from schemas.resume import ResumeRequest, ResumeResponse
 from services.pipeline import pipeline
@@ -19,7 +20,11 @@ router = APIRouter(tags=["generation"])
 
 @router.post("/generate-resume", response_model=ResumeResponse)
 @limiter.limit("10/hour")
-async def create_resume(request: Request, body: ResumeRequest):
+async def create_resume(
+    request: Request,
+    body: ResumeRequest,
+    user: dict = Depends(require_user_or_demo),
+):
     if not body.github_username and not body.additional_info and not body.linkedin_url:
         raise HTTPException(
             status_code=400,
@@ -61,6 +66,7 @@ async def stream_resume_generation(
     custom_system_prompt: Optional[str] = Query(None),
     resume_template: Optional[str] = Query(None),
     template_format: str = Query("tex"),
+    user: dict = Depends(require_user_or_demo),
 ):
     """Stream resume generation via Server-Sent Events (SSE).
 
@@ -109,7 +115,10 @@ async def stream_resume_generation(
 
 
 @router.post("/extract-resume")
-async def extract_resume(file: UploadFile = File(...)):
+async def extract_resume(
+    file: UploadFile = File(...),
+    user: dict = Depends(require_user_or_demo),
+):
     try:
         content = await file.read()
 

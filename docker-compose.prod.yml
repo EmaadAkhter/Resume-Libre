@@ -17,6 +17,8 @@ services:
     build: ./resume_generator_backend
     env_file:
       - .env
+    environment:
+      REDIS_URL: redis://redis:6379
     depends_on:
       latex-service:
         condition: service_healthy

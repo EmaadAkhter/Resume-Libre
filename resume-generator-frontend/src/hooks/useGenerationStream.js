@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { eventBus } from '../lib/eventBus'
 import { EVENTS } from '../lib/eventTypes'
+import { authHeaders } from '../lib/api'
 
 export function useGenerationStream() {
   const streamGeneration = useCallback(async (params, onToken, onDone, onError) => {
@@ -21,7 +22,7 @@ export function useGenerationStream() {
     try {
       const response = await fetch(`${apiUrl}/generate-resume-stream?${queryParams}`, {
         method: 'GET',
-        headers: { Accept: 'text/event-stream' },
+        headers: { Accept: 'text/event-stream', ...(await authHeaders()) },
       })
 
       if (!response.ok) {

@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import Response, StreamingResponse
 
+from core.deps import require_user_or_demo
 from core.limiter import limiter
 from schemas.export import ExportRequest
 from services.export_utils import (
@@ -17,7 +18,11 @@ router = APIRouter(tags=["export"])
 
 @router.post("/export-resume")
 @limiter.limit("20/hour")
-async def export_resume(request: Request, body: ExportRequest):
+async def export_resume(
+    request: Request,
+    body: ExportRequest,
+    user: dict = Depends(require_user_or_demo),
+):
     try:
         filename_base = get_filename_base(body.markdown_content)
 

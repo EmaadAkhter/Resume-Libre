@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import { eventBus } from '../lib/eventBus'
 import { EVENTS } from '../lib/eventTypes'
 import { useGenerationStream } from '../hooks/useGenerationStream'
+import { authHeaders } from '../lib/api'
 import { useTemplates } from '../hooks/useTemplates'
 import ResumeForm from '../components/ResumeForm'
 import MarkdownEditor from '../components/MarkdownEditor'
@@ -42,7 +43,7 @@ export default function ResumeEditor({ user }) {
     try {
       const resp = await fetch(`${apiUrl}/export-resume`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({ markdown_content: src, latex_content: src, format: 'latex_pdf' }),
       })
       if (!resp.ok) {
@@ -127,7 +128,7 @@ export default function ResumeEditor({ user }) {
             try {
               const resp = await fetch(`${apiUrl}/export-resume`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
                 body: JSON.stringify({ markdown_content: full, format: 'latex' }),
               })
               const latex = await resp.text()
