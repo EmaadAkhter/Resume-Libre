@@ -14,6 +14,7 @@ import ExportMenu from '../components/ExportMenu'
 import SystemPromptModal from '../components/SystemPromptModal'
 import VersionHistory from '../components/VersionHistory'
 import BranchManager from '../components/BranchManager'
+import ATSScore from '../components/ATSScore'
 
 export default function ResumeEditor({ user }) {
   const { resumeId } = useParams()
@@ -33,6 +34,9 @@ export default function ResumeEditor({ user }) {
   const [currentBranch, setCurrentBranch] = useState('main')
   const [showHistory, setShowHistory] = useState(false)
   const [inputMode, setInputMode] = useState('standard') // 'standard' | 'guided'
+  const [atsScore, setAtsScore] = useState(null)
+  const [atsLoading, setAtsLoading] = useState(false)
+  const [atsError, setAtsError] = useState(null)
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -110,14 +114,40 @@ export default function ResumeEditor({ user }) {
     loadResume()
   }, [loadResume])
 
+  const runAtsAnalysis = async (resumeText, jobDescription) => {
+    setAtsLoading(true)
+    setAtsError(null)
+    try {
+      const resp = await fetch(`${apiUrl}/analyze-ats`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+        body: JSON.stringify({ resume_text: resumeText, job_description: jobDescription }),
+      })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        throw new Error(err.detail || `ATS analysis failed (${resp.status})`)
+      }
+      setAtsScore(await resp.json())
+    } catch (err) {
+      // Non-fatal: the resume itself generated fine, so no toast — just an inline note
+      setAtsError(err.message || 'ATS analysis failed')
+    } finally {
+      setAtsLoading(false)
+    }
+  }
+
   const handleGenerate = async (params) => {
     // FresherWizard omits these — fall back to the editor's selections
     params.resume_template ??= selectedTemplate?.content
     params.priority ??= 'experience'
 
+    const jobDescription = params.job_description?.trim() || ''
+
     setLoading(true)
     setResumeContent('')
     setPdfUrl(null)
+    setAtsScore(null)
+    setAtsError(null)
 
     try {
       const content = await streamGeneration(
@@ -145,6 +175,9 @@ export default function ResumeEditor({ user }) {
           } else {
             setResumeContent(full)
             compilePdf(full)
+          }
+          if (jobDescription) {
+            runAtsAnalysis(full, jobDescription)
           }
         },
         (err) => {
@@ -362,6 +395,11 @@ export default function ResumeEditor({ user }) {
               <FresherWizard onGenerate={handleGenerate} loading={loading} />
             )}
           </div>
+          {(atsScore || atsLoading || atsError) && (
+            <div className="mt-4">
+              <ATSScore result={atsScore} loading={atsLoading} error={atsError} />
+            </div>
+          )}
         </div>
 
         {/* Center: Editor/Preview */}
