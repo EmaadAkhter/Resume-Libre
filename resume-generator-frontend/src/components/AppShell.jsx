@@ -25,7 +25,7 @@ function SidebarContent({ user, profile, logout, onNavigate }) {
           <img
             src="/logo.png"
             alt="ResumeLibre"
-            className="h-12 w-auto"
+            className="h-16 w-auto"
             style={{ viewTransitionName: 'site-logo' }}
           />
         </Link>
@@ -79,7 +79,7 @@ export default function AppShell({ user, profile, logout, children }) {
       {/* Mobile top bar */}
       <header className="md:hidden sticky top-0 z-30 bg-white border-b border-gray-200 flex items-center justify-between px-4 py-3">
         <Link to="/dashboard">
-          <img src="/logo.png" alt="ResumeLibre" className="h-11 w-auto" />
+          <img src="/logo.png" alt="ResumeLibre" className="h-12 w-auto" />
         </Link>
         <button
           onClick={() => setSidebarOpen(true)}
