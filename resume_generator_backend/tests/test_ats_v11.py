@@ -86,7 +86,7 @@ def test_agreement_glued_reason_names_word_counts():
     assert check["status"] in ("warn", "fail")
     assert "without word spacing" in check["reason"]
     assert "1 words vs 20 words" in check["reason"]
-    assert "design-tool" in check["fix"]
+    assert "standard font" in check["fix"]
 
 
 def test_agreement_not_glued_keeps_generic_reason():
@@ -166,30 +166,51 @@ def test_endpoint_link_annotation_pdf(client):
 # ── margin-contact (#25) ─────────────────────────────────────────────
 
 
-def make_margin_pdf(email_in_margin):
+def make_margin_pdf(contact_zone):
+    """contact_zone: 'page1-top' | 'footer' | 'page2-top' | 'body'."""
     doc = fitz.open()
     page = doc.new_page()  # A4: 595 x 842 pt; margin band = top/bottom 8%
-    if email_in_margin:
+    body = BODY_TEXT if contact_zone == "body" else NO_CONTACT_BODY
+    if contact_zone == "page1-top":
         page.insert_text(fitz.Point(72, 30), "john.doe@example.com", fontsize=9)
-        body = NO_CONTACT_BODY
-    else:
-        body = BODY_TEXT
+    elif contact_zone == "footer":
+        page.insert_text(fitz.Point(72, 820), "john.doe@example.com", fontsize=9)
     page.insert_textbox(fitz.Rect(72, 150, 523, 700), body, fontsize=10)
+    if contact_zone == "page2-top":
+        page2 = doc.new_page()
+        page2.insert_text(fitz.Point(72, 30), "john.doe@example.com", fontsize=9)
+        page2.insert_textbox(fitz.Rect(72, 150, 523, 700), NO_CONTACT_BODY, fontsize=10)
     data = doc.tobytes()
     doc.close()
     return data
 
 
-def test_margin_only_email_fails_header_footer_check(client):
-    resp = post_pdf(client, make_margin_pdf(email_in_margin=True))
+def test_page1_top_contact_is_normal_resume_layout(client):
+    # Contact under the name at the top of page 1 must NOT fail —
+    # that's where resume contact lines live (false-positive regression).
+    resp = post_pdf(client, make_margin_pdf("page1-top"))
+    assert resp.status_code == 200
+    check = check_by_id(resp.json(), "header-footer-contact")
+    assert check["status"] == "pass"
+
+
+def test_footer_only_email_fails_header_footer_check(client):
+    resp = post_pdf(client, make_margin_pdf("footer"))
     assert resp.status_code == 200
     check = check_by_id(resp.json(), "header-footer-contact")
     assert check["status"] == "fail"
     assert "header/footer" in check["reason"]
 
 
+def test_page2_running_header_contact_fails(client):
+    resp = post_pdf(client, make_margin_pdf("page2-top"))
+    assert resp.status_code == 200
+    check = check_by_id(resp.json(), "header-footer-contact")
+    assert check["status"] == "fail"
+
+
 def test_body_contact_passes_header_footer_check(client):
-    resp = post_pdf(client, make_margin_pdf(email_in_margin=False))
+    resp = post_pdf(client, make_margin_pdf("body"))
     assert resp.status_code == 200
     check = check_by_id(resp.json(), "header-footer-contact")
     assert check["status"] == "pass"

@@ -53,19 +53,23 @@ def _has_phone(text):
 def contact_in_margins(data):
     """True when email or phone exists only in the header/footer band.
 
-    Words in the top/bottom MARGIN_BAND_FRACTION of any page are margin
-    text; everything else is body text. A contact detail that appears in
-    the margins but nowhere in the body is invisible to parsers that skip
-    header/footer regions.
+    Words in the bottom MARGIN_BAND_FRACTION of any page — or the top band
+    from page 2 onward — are margin text; everything else is body text.
+    The page-1 top band deliberately counts as body: that's where resume
+    contact lines are supposed to live, while a running header only exists
+    on continuation pages. A contact detail that appears in the margins but
+    nowhere in the body is invisible to parsers that skip header/footer
+    regions.
     """
     margin_words = []
     body_words = []
     with pdfplumber.open(io.BytesIO(data)) as pdf:
-        for page in pdf.pages:
+        for page_index, page in enumerate(pdf.pages):
             top_band = page.height * MARGIN_BAND_FRACTION
             bottom_band = page.height * (1 - MARGIN_BAND_FRACTION)
             for word in page.extract_words():
-                if word["top"] < top_band or word["bottom"] > bottom_band:
+                in_top = page_index > 0 and word["top"] < top_band
+                if in_top or word["bottom"] > bottom_band:
                     margin_words.append(word["text"])
                 else:
                     body_words.append(word["text"])
