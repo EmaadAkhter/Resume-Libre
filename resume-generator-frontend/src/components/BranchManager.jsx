@@ -103,7 +103,7 @@ export default function BranchManager({ resumeId, user, currentBranch, onBranchC
           />
           <button
             onClick={handleCreate}
-            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-medium"
+            className="px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white rounded text-xs font-medium"
           >
             Create
           </button>
@@ -129,7 +129,7 @@ export default function BranchManager({ resumeId, user, currentBranch, onBranchC
           <button
             onClick={handleMerge}
             disabled={!mergeSource}
-            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-medium disabled:opacity-50"
+            className="px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white rounded text-xs font-medium disabled:opacity-50"
           >
             Merge
           </button>
@@ -141,14 +141,14 @@ export default function BranchManager({ resumeId, user, currentBranch, onBranchC
           <div
             key={b.id}
             className={`flex items-center gap-2 px-2 py-1 rounded text-sm cursor-pointer ${
-              b.name === currentBranch ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-100'
+              b.name === currentBranch ? 'bg-primary-50 text-primary-700' : 'hover:bg-gray-100'
             }`}
             onClick={() => onBranchChange?.(b.name)}
           >
             <GitBranch className="w-3 h-3" />
             {b.name}
             {b.name === currentBranch && (
-              <span className="ml-auto text-xs text-blue-500">current</span>
+              <span className="ml-auto text-xs text-primary-600">current</span>
             )}
           </div>
         ))}

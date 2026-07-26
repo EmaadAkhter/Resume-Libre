@@ -7,7 +7,7 @@ export default function TemplatePicker({ templates, selected, onSelect, user: _u
         const template = templates.find((t) => t.id === e.target.value)
         onSelect(template || null)
       }}
-      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white"
+      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm bg-white"
     >
       <option value="">No template (AI decides format)</option>
       {templates.map((t) => (

@@ -164,7 +164,7 @@ export default function FresherWizard({ onGenerate, loading }) {
               onClick={() => { setProfession(key); setStep(1) }}
               className={`px-3 py-3 border-2 rounded-lg text-sm font-medium text-left transition
                 ${profession === key
-                  ? 'border-blue-600 bg-blue-50 text-blue-700'
+                  ? 'border-primary-600 bg-primary-50 text-primary-700'
                   : 'border-gray-200 text-gray-700 hover:border-gray-300'
                 }`}
             >
@@ -312,7 +312,7 @@ export default function FresherWizard({ onGenerate, loading }) {
             )}
           </div>
         ))}
-        <button onClick={addProject} className="text-xs text-blue-600 hover:text-blue-800 font-medium">+ Add another {pc.title.toLowerCase()}</button>
+        <button onClick={addProject} className="text-xs text-primary-600 hover:text-primary-800 font-medium">+ Add another {pc.title.toLowerCase()}</button>
         <p className="text-xs text-gray-500">{pc.hint}</p>
       </div>
     )
@@ -361,7 +361,7 @@ export default function FresherWizard({ onGenerate, loading }) {
             </div>
           </div>
         ))}
-        <button onClick={addExp} className="text-xs text-blue-600 hover:text-blue-800 font-medium">+ Add another {ec.title.toLowerCase()}</button>
+        <button onClick={addExp} className="text-xs text-primary-600 hover:text-primary-800 font-medium">+ Add another {ec.title.toLowerCase()}</button>
         {stepConfig.experience.hint && <p className="text-xs text-gray-500">{stepConfig.experience.hint}</p>}
       </div>
     )
@@ -391,7 +391,7 @@ export default function FresherWizard({ onGenerate, loading }) {
       <div className="flex items-center justify-between">
         <div className="flex gap-1">
           {STEP_LABELS.map((label, i) => (
-            <div key={i} className={`text-[10px] px-1.5 py-0.5 rounded ${step === i ? 'bg-blue-100 text-blue-700 font-medium' : 'text-gray-400'}`}>
+            <div key={i} className={`text-[10px] px-1.5 py-0.5 rounded ${step === i ? 'bg-primary-100 text-primary-700 font-medium' : 'text-gray-400'}`}>
               {label}
             </div>
           ))}
@@ -410,11 +410,11 @@ export default function FresherWizard({ onGenerate, loading }) {
           </button>
         )}
         {step < STEP_LABELS.length - 1 ? (
-          <button onClick={() => setStep(step + 1)} disabled={!isStepValid()} className="px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white rounded-lg text-sm font-medium flex-1">
+          <button onClick={() => setStep(step + 1)} disabled={!isStepValid()} className="px-3 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-300 text-white rounded-lg text-sm font-medium flex-1">
             Next
           </button>
         ) : (
-          <button onClick={handleGenerate} disabled={loading} className="w-full flex items-center justify-center gap-2 px-3 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white rounded-lg text-sm font-medium flex-1">
+          <button onClick={handleGenerate} disabled={loading} className="w-full flex items-center justify-center gap-2 px-3 py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-300 text-white rounded-lg text-sm font-medium flex-1">
             <Sparkles className="w-4 h-4" />
             {loading ? 'Generating...' : 'Generate Resume'}
           </button>

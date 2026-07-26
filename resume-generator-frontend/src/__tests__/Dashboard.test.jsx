@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import Dashboard from '../pages/Dashboard'
+import AppShell from '../components/AppShell'
 
 vi.mock('../lib/supabase', () => ({
   supabase: {
@@ -24,10 +25,12 @@ vi.mock('react-router-dom', async () => ({
 }))
 
 describe('Dashboard', () => {
-  it('renders header with user email', () => {
+  it('renders shell sidebar with user email', () => {
     render(
       <MemoryRouter>
-        <Dashboard user={{ id: 'u1', email: 'test@test.com' }} profile={{ email: 'test@test.com' }} logout={vi.fn()} />
+        <AppShell user={{ id: 'u1', email: 'test@test.com' }} profile={{ email: 'test@test.com' }} logout={vi.fn()}>
+          <Dashboard user={{ id: 'u1', email: 'test@test.com' }} />
+        </AppShell>
       </MemoryRouter>
     )
     expect(screen.getByText('test@test.com')).toBeInTheDocument()
@@ -36,7 +39,7 @@ describe('Dashboard', () => {
   it('renders new resume button', () => {
     render(
       <MemoryRouter>
-        <Dashboard user={{ id: 'u1' }} profile={{}} logout={vi.fn()} />
+        <Dashboard user={{ id: 'u1' }} />
       </MemoryRouter>
     )
     expect(screen.getByText('New Resume')).toBeInTheDocument()
@@ -45,7 +48,9 @@ describe('Dashboard', () => {
   it('shows admin badge when role is admin', () => {
     render(
       <MemoryRouter>
-        <Dashboard user={{ id: 'u1' }} profile={{ role: 'admin' }} logout={vi.fn()} />
+        <AppShell user={{ id: 'u1' }} profile={{ role: 'admin' }} logout={vi.fn()}>
+          <Dashboard user={{ id: 'u1' }} />
+        </AppShell>
       </MemoryRouter>
     )
     expect(screen.getByText('Admin')).toBeInTheDocument()

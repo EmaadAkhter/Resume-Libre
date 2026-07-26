@@ -10,7 +10,7 @@ export default function ATSScore({ result, loading, error }) {
   if (loading) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-5 flex items-center gap-2 text-sm text-gray-500">
-        <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+        <Loader2 className="w-4 h-4 animate-spin text-primary-600" />
         Analyzing ATS match...
       </div>
     )

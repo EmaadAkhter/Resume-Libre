@@ -37,9 +37,9 @@ export default function Login({ login }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-lg shadow-md p-8">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
           <div className="text-center mb-6">
-            <img src="/logo.png" alt="ResumeLibre" className="w-full h-auto mx-auto mb-3" style={{ viewTransitionName: 'site-logo' }} />
+            <img src="/logo.png" alt="ResumeLibre" className="h-14 w-auto mx-auto mb-3" style={{ viewTransitionName: 'site-logo' }} />
             <p className="text-sm text-gray-600">Sign in to your account</p>
           </div>
 
@@ -53,7 +53,7 @@ export default function Login({ login }) {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm"
                   placeholder="you@example.com"
                 />
               </div>
@@ -68,7 +68,7 @@ export default function Login({ login }) {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm"
                   placeholder="••••••••"
                 />
               </div>
@@ -77,7 +77,7 @@ export default function Login({ login }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition text-sm font-medium disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition text-sm font-medium disabled:opacity-50"
             >
               <LogIn className="w-4 h-4" />
               {loading ? 'Signing in...' : 'Sign In'}
@@ -86,7 +86,7 @@ export default function Login({ login }) {
 
           <p className="mt-6 text-center text-sm text-gray-600">
             Don't have an account?{' '}
-            <Link to="/register" className="text-blue-600 hover:underline font-medium">
+            <Link to="/register" className="text-primary-600 hover:underline font-medium">
               Sign up
             </Link>
           </p>

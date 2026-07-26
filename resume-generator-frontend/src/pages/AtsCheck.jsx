@@ -40,7 +40,7 @@ const CONFIDENCE_META = {
 // The basic check needs no account — the endpoint is unauthenticated by
 // design and everything is processed in memory server-side. Only the
 // optional AI resolve pass (LLM cost) requires being signed in.
-export default function AtsCheck() {
+export default function AtsCheck({ inShell = false }) {
   const [report, setReport] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -141,14 +141,16 @@ export default function AtsCheck() {
   const summary = report?.summary
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="flex items-center justify-between px-6 py-4 max-w-3xl mx-auto">
-        <Link to="/" className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900">
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </Link>
-        <span className="text-xs text-gray-500">ATS parseability check</span>
-      </nav>
+    <div className={inShell ? '' : 'min-h-screen bg-gray-50'}>
+      {!inShell && (
+        <nav className="flex items-center justify-between px-6 py-4 max-w-3xl mx-auto">
+          <Link to="/" className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900">
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Link>
+          <span className="text-xs text-gray-500">ATS parseability check</span>
+        </nav>
+      )}
 
       <main className="max-w-3xl mx-auto px-6 pb-16">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center">
@@ -175,7 +177,7 @@ export default function AtsCheck() {
           tabIndex={0}
           onKeyDown={(e) => e.key === 'Enter' && inputRef.current?.click()}
           className={`mt-2 bg-white rounded-lg border-2 border-dashed p-10 text-center cursor-pointer transition ${
-            dragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+            dragging ? 'border-primary-500 bg-primary-50' : 'border-gray-300 hover:border-gray-400'
           }`}
         >
           <input
@@ -187,7 +189,7 @@ export default function AtsCheck() {
           />
           {loading ? (
             <div className="flex flex-col items-center gap-2 text-gray-500">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
               <span className="text-sm">Checking your resume…</span>
             </div>
           ) : (
@@ -272,7 +274,7 @@ export default function AtsCheck() {
                               {result.value.map((skill) => (
                                 <span
                                   key={skill}
-                                  className="px-2 py-0.5 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-200"
+                                  className="px-2 py-0.5 text-xs rounded-full bg-primary-50 text-primary-700 border border-primary-200"
                                 >
                                   {skill}
                                 </span>
@@ -309,7 +311,7 @@ export default function AtsCheck() {
                       type="button"
                       onClick={resolveWithAi}
                       disabled={resolving || !lastFile}
-                      className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                      className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-60"
                     >
                       {resolving ? (
                         <>
