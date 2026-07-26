@@ -39,7 +39,7 @@ export default function Login({ login }) {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
           <div className="text-center mb-6">
-            <img src="/logo.png" alt="ResumeLibre" className="h-24 w-auto mx-auto mb-4" style={{ viewTransitionName: 'site-logo' }} />
+            <img src="/logo.png" alt="ResumeLibre" className="h-32 w-auto mx-auto mb-4" style={{ viewTransitionName: 'site-logo' }} />
             <p className="text-sm text-gray-600">Sign in to your account</p>
           </div>
 
