@@ -9,7 +9,8 @@ from fastapi.responses import StreamingResponse
 from core.deps import require_user_or_demo
 from core.event_types import Events
 from core.limiter import limiter
-from schemas.resume import ResumeRequest, ResumeResponse
+from schemas.resume import AtsScoreRequest, ResumeRequest, ResumeResponse
+from services.ats_score import analyze_ats
 from services.events import bus
 from services.pipeline import pipeline
 
@@ -110,6 +111,22 @@ async def stream_resume_generation(
             "X-Accel-Buffering": "no",
         },
     )
+
+
+@router.post("/analyze-ats")
+@limiter.limit("10/hour")
+async def analyze_ats_score(
+    request: Request,
+    body: AtsScoreRequest,
+    user: dict = Depends(require_user_or_demo),
+):
+    """Score how well a resume matches a job description (ATS keywords)."""
+    result = await analyze_ats(
+        resume_text=body.resume_text,
+        job_description=body.job_description,
+        demo=user.get("demo", False),
+    )
+    return result.model_dump()
 
 
 @router.post("/extract-resume")

@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ResumeRequest(BaseModel):
@@ -12,6 +12,11 @@ class ResumeRequest(BaseModel):
     custom_system_prompt: str | None = None
     resume_template: str | None = None
     template_format: Literal["md", "tex"] = "md"
+
+
+class AtsScoreRequest(BaseModel):
+    resume_text: str = Field(min_length=100, max_length=60_000)
+    job_description: str = Field(min_length=30, max_length=30_000)
 
 
 class ResumeResponse(BaseModel):
