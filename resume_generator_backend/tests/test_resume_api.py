@@ -75,12 +75,3 @@ def test_export_resume_invalid_format(mock_get_client, monkeypatch):
     assert response.status_code == 422  # Pydantic validation error
 
 
-@patch("services.auth.get_supabase_client")
-def test_protected_resume_endpoints_require_auth(mock_get_client):
-    from main import app
-
-    client = TestClient(app)
-
-    # Without auth header, should get 401 (missing bearer)
-    response = client.get("/resumes")
-    assert response.status_code == 401

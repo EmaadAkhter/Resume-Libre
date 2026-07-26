@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Download, FileText, FileType, FileCode } from 'lucide-react'
+import { Download, FileText, FileCode } from 'lucide-react'
 import { eventBus } from '../lib/eventBus'
 import { EVENTS } from '../lib/eventTypes'
 import { authHeaders } from '../lib/api'
@@ -77,10 +77,7 @@ export default function ExportMenu({ resumeContent, latexContent, backendConnect
   }
 
   const options = [
-    { format: 'latex_pdf', label: 'PDF (LaTeX)', icon: <FileText className="w-4 h-4" /> },
-    { format: 'pdf', label: 'PDF (Basic)', icon: <FileText className="w-4 h-4" /> },
-    { format: 'docx', label: 'DOCX', icon: <FileType className="w-4 h-4" /> },
-    { format: 'md', label: 'Markdown', icon: <FileCode className="w-4 h-4" /> },
+    { format: 'latex_pdf', label: 'PDF', icon: <FileText className="w-4 h-4" /> },
     { format: 'latex', label: 'LaTeX Source', icon: <FileCode className="w-4 h-4" /> },
   ]
 

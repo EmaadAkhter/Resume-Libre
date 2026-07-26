@@ -1,12 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import Response, StreamingResponse
+from fastapi.responses import Response
 
 from core.deps import require_user_or_demo
 from core.limiter import limiter
 from schemas.export import ExportRequest
 from services.export_utils import (
-    markdown_to_pdf,
-    markdown_to_docx,
     markdown_to_latex_pdf,
     latex_to_pdf,
     get_filename_base,
@@ -26,17 +24,7 @@ async def export_resume(
     try:
         filename_base = get_filename_base(body.markdown_content)
 
-        if body.format == "pdf":
-            pdf_bytes = markdown_to_pdf(body.markdown_content)
-            return Response(
-                content=pdf_bytes,
-                media_type="application/pdf",
-                headers={
-                    "Content-Disposition": f"attachment; filename={filename_base}.pdf"
-                },
-            )
-
-        elif body.format == "latex_pdf":
+        if body.format == "latex_pdf":
             if body.latex_content:
                 pdf_bytes = await latex_to_pdf(body.latex_content)
             else:
@@ -56,25 +44,6 @@ async def export_resume(
                 media_type="application/x-tex",
                 headers={
                     "Content-Disposition": f"attachment; filename={filename_base}.tex"
-                },
-            )
-
-        elif body.format == "docx":
-            docx_buffer = markdown_to_docx(body.markdown_content)
-            return StreamingResponse(
-                docx_buffer,
-                media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                headers={
-                    "Content-Disposition": f"attachment; filename={filename_base}.docx"
-                },
-            )
-
-        elif body.format == "md":
-            return Response(
-                content=body.markdown_content.encode("utf-8"),
-                media_type="text/markdown",
-                headers={
-                    "Content-Disposition": f"attachment; filename={filename_base}.md"
                 },
             )
 

@@ -41,13 +41,11 @@ def create_app() -> FastAPI:
     EventLoggingSubscriber.register(bus)
 
     # ─── Include routers ────────────────────────────────
-    from routers import health, generation, export, resumes, templates, debug
+    from routers import health, generation, export, debug
 
     app.include_router(health.router)
     app.include_router(generation.router)
     app.include_router(export.router)
-    app.include_router(resumes.router)
-    app.include_router(templates.router)
     app.include_router(debug.router)
 
     return app
