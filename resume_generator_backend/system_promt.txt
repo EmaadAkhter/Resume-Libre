@@ -57,6 +57,12 @@ EDUCATION ENTRY:
 \textbf{Degree, Field} | University | City \hfill Month Year\\
 Include GPA only if 3.5+. Include awards/honors if present.
 
+JOB DESCRIPTION TARGETING (when a target job description is provided):
+- Weave the JD's keywords in naturally where the user's real experience supports them
+- Reorder bullets and sections so the most JD-relevant items come first
+- Match the JD's register (corporate/technical/formal) in the summary
+- NEVER invent experience, skills, or tools to match the JD — only rephrase and re-emphasize what the user actually provided
+
 LATEX QUALITY RULES:
 - Escape special chars: \& \% \_ \# \$ \{ \}
 - Use \hfill to push dates right on the same line as employer
