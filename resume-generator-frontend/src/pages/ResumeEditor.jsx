@@ -11,6 +11,7 @@ import ResumeForm from '../components/ResumeForm'
 import FresherWizard from '../components/FresherWizard'
 import MarkdownEditor from '../components/MarkdownEditor'
 import ExportMenu from '../components/ExportMenu'
+import PublishMenu from '../components/PublishMenu'
 import SystemPromptModal from '../components/SystemPromptModal'
 import VersionHistory from '../components/VersionHistory'
 import BranchManager from '../components/BranchManager'
@@ -414,6 +415,8 @@ export default function ResumeEditor({ user }) {
               latexContent={resumeContent}
               backendConnected={backendConnected}
             />
+
+            <PublishMenu user={user} resume={resume} pdfUrl={pdfUrl} />
 
             <button
               onClick={() => setShowHistory(!showHistory)}

@@ -7,6 +7,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import ResumeEditor from './pages/ResumeEditor'
+import PublicResume from './pages/PublicResume'
 import AppShell from './components/AppShell'
 import LoadingScreen from './components/LoadingScreen'
 import ToastContainer from './components/ToastContainer'
@@ -60,6 +61,7 @@ export default function App() {
           }
         />
         <Route path="/demo" element={<Demo />} />
+        <Route path="/r/:userId" element={<PublicResume />} />
         <Route
           path="/ats-check"
           element={
