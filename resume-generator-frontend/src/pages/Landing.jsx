@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Github, Sparkles, FileText, GitBranch, Server, ShieldCheck } from 'lucide-react'
+import { Github, Sparkles, FileText, FileSearch, GitBranch, Server, ShieldCheck } from 'lucide-react'
 
 const REPO_URL = 'https://github.com/EmaadAkhter/Resume-Libre'
 
@@ -54,6 +54,13 @@ export default function Landing() {
             >
               <Sparkles className="w-4 h-4" />
               Generate your resume
+            </Link>
+            <Link
+              to="/ats-check"
+              className="w-full sm:w-auto px-6 py-3 bg-white border border-gray-300 hover:border-gray-400 text-gray-800 rounded-lg font-medium transition flex items-center justify-center gap-2"
+            >
+              <FileSearch className="w-4 h-4" />
+              Check your resume's ATS-readiness — free, no signup
             </Link>
             <a
               href={REPO_URL}

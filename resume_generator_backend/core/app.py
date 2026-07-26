@@ -42,10 +42,12 @@ def create_app() -> FastAPI:
 
     # ─── Include routers ────────────────────────────────
     from routers import health, generation, export, debug
+    from ats.router import router as ats_router
 
     app.include_router(health.router)
     app.include_router(generation.router)
     app.include_router(export.router)
     app.include_router(debug.router)
+    app.include_router(ats_router)
 
     return app
