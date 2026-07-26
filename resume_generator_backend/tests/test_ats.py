@@ -9,7 +9,8 @@ import fitz
 import pytest
 from fastapi.testclient import TestClient
 
-# Long enough (>200 words) that the resume-length band check passes too.
+# Long enough (>200 words) that the resume-length band check passes, with
+# enough quantified bullet lines that the v2 content checks pass too.
 CLEAN_RESUME_TEXT = """John Doe
 john.doe@example.com | +1 555-123-4567 | San Francisco, CA
 
@@ -21,22 +22,23 @@ pipelines, monitoring, and incident response in production environments.
 
 Experience
 Software Engineer at TechCorp from 2020 to Present
-Built microservices that process one million API requests daily.
-Led the migration from a monolith to microservices architecture.
-Designed caching layers that cut median response latency from 240ms to 90ms.
-Automated the release pipeline, reducing deploy time from hours to minutes.
-Mentored four junior engineers through structured code review and pairing.
+- Built microservices that process 1,000,000 API requests daily.
+- Led the migration from a monolith to 12 microservices with zero downtime.
+- Designed caching layers that cut median response latency from 240ms to 90ms.
+- Automated the release pipeline, reducing deploy time from 4 hours to 20 minutes.
+- Mentored 4 junior engineers through structured code review and pairing.
 
 Junior Developer at WebStart from 2018 to 2020
-Developed customer dashboards in React and TypeScript for analytics teams.
-Implemented integration tests that raised backend coverage from 40 to 85
+- Developed customer dashboards in React and TypeScript for analytics teams.
+- Implemented integration tests that raised backend coverage from 40 to 85
 percent across three services and caught regressions before every release.
-Optimized SQL queries powering the billing report, saving hours of batch
+- Optimized SQL queries powering the billing report, saving 6 hours of batch
 time each week and unblocking the finance team's monthly close process.
 
 Projects
-OpenMetrics, an open source metrics collector with over one thousand stars.
-Implemented a plugin system and wrote documentation adopted by the community.
+OpenMetrics, an open source metrics collector with over 1,000 GitHub stars.
+- Shipped a plugin system and wrote documentation adopted by the community.
+- Grew a Grafana integration to 300 installations within two months.
 BudgetTracker, a personal finance application with automatic categorization
 of transactions, budget alerts, and exports that users rely on every month.
 
@@ -109,11 +111,16 @@ def test_clean_single_column_pdf_passes_all_checks(client):
     assert resp.status_code == 200
     body = resp.json()
     assert body["filename"] == "resume.pdf"
-    # 9 v1.1 checks + the 7 document-shape battery checks (page-count,
-    # resume-length, font-count, tiny-font, images, special-characters,
-    # margins)
-    assert body["summary"] == {"passed": 16, "warned": 0, "failed": 0}
+    # 16 v1.1/battery checks + encrypted-pdf + file-size + the 13 text-based
+    # content/contact checks (filename is skipped for the editor-synthesized
+    # "resume.pdf"; writing-tips declines to run on clean text)
+    assert body["summary"] == {"passed": 31, "warned": 0, "failed": 0}
     assert all(c["status"] == "pass" for c in body["checks"])
+    assert all(
+        c["category"]
+        in {"extraction", "layout", "typography", "contact", "content", "file"}
+        for c in body["checks"]
+    )
     assert "score" not in body  # checklist only, no blended score
 
 

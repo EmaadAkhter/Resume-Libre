@@ -34,6 +34,39 @@ const OUTCOME_SEGMENTS = [
   },
 ]
 
+/**
+ * Micro stacked bar for one category group's pass/warn/fail mix, sized to
+ * sit inline in a group header. Informational checks are suggestions, not
+ * outcomes, so they are excluded from the segments. The min-width keeps a
+ * lone check visible; the group header text carries the accessible counts.
+ */
+export function CategoryBar({ checks }) {
+  if (!checks?.length) return null
+  const counts = { passed: 0, warned: 0, failed: 0 }
+  for (const check of checks) {
+    if (check.status === 'pass') counts.passed += 1
+    else if (check.status === 'warn') counts.warned += 1
+    else if (check.status === 'fail') counts.failed += 1
+  }
+  const total = counts.passed + counts.warned + counts.failed
+  if (total === 0) return null
+  return (
+    <div
+      className="flex gap-0.5 h-2 w-20 shrink-0 rounded-full overflow-hidden"
+      role="img"
+      aria-label={`${counts.passed} passed, ${counts.warned} warned, ${counts.failed} failed`}
+    >
+      {OUTCOME_SEGMENTS.filter((s) => counts[s.key] > 0).map((s) => (
+        <div
+          key={s.key}
+          className={`h-full ${s.fill}`}
+          style={{ flex: counts[s.key], minWidth: '0.375rem' }}
+        />
+      ))}
+    </div>
+  )
+}
+
 /** Stacked pass/warn/fail counts as one thin bar, legend beneath. */
 export function OutcomeBar({ summary }) {
   if (!summary) return null
@@ -151,7 +184,10 @@ export function ThresholdMeter({ metric }) {
  */
 export function BandGauge({ metric }) {
   if (!metric || typeof metric.value !== 'number') return null
-  const max = Math.max(1200, metric.value * 1.1)
+  // Scale to the band, not a fixed corpus: 4/3 of the upper bound keeps the
+  // acceptable band at ~75% of the track for words (900 → 1200, unchanged
+  // from the original constant) and MB (2 → 2.67) alike.
+  const max = Math.max((metric.high || 1) * (4 / 3), metric.value * 1.1)
   const at = (v) => Math.min(1, Math.max(0, v / max))
   const unit = metric.unit ? ` ${metric.unit}` : ''
   const zones = [

@@ -19,6 +19,33 @@ from core.limiter import limiter
 
 router = APIRouter(prefix="/ats", tags=["ats"])
 
+# The editor's auto-check uploads a synthesized blob under this name; the
+# filename check would nag about it on every compile, so it is skipped.
+_SYNTHESIZED_FILENAME = "resume.pdf"
+
+
+def _text_checks(text):
+    """Format-independent content & contact checks on the best extracted
+    text, shared by the PDF and DOCX branches. Checks that decline to run
+    (writing_tips, quantified_bullets) return None and are dropped."""
+    candidates = [
+        checks.bullet_density(text),
+        checks.quantified_bullets(text),
+        checks.long_bullets(text),
+        checks.repeated_verbs(text),
+        checks.first_person(text),
+        checks.buzzwords(text),
+        checks.all_caps_lines(text),
+        checks.duplicate_bullets(text),
+        checks.date_format_consistency(text),
+        checks.hyphenation_breaks(text),
+        checks.orphan_headings(text),
+        checks.writing_tips(text),
+        checks.multiple_emails(text),
+        checks.broken_links(text),
+    ]
+    return [check for check in candidates if check is not None]
+
 
 @router.get("/roles")
 async def list_roles():
@@ -67,6 +94,8 @@ async def check_resume(request: Request, file: UploadFile = File(...)):
                 checks.margins(stats["edge_text"]),
                 checks.link_only_contact(extracted),
                 checks.header_footer_contact(layout.contact_in_margins(data)),
+                checks.encrypted_pdf(stats["is_encrypted"]),
+                checks.file_size(len(data)),
             ]
             best_text = plumber_text
         else:
@@ -87,11 +116,12 @@ async def check_resume(request: Request, file: UploadFile = File(...)):
                 checks.section_headers(text),
                 checks.contact_info(text),
                 checks.resume_length(len(text.split())),
+                checks.file_size(len(data)),
             ]
             best_text = text
-        tips = checks.writing_tips(best_text)
-        if tips is not None:
-            results.append(tips)
+        if file.filename != _SYNTHESIZED_FILENAME:
+            results.append(checks.filename_check(file.filename))
+        results.extend(_text_checks(best_text))
     except HTTPException:
         raise
     except Exception:

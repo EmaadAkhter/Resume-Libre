@@ -39,7 +39,8 @@ def pdf_stats(data):
 
     One pass over the PyMuPDF document (pages, fonts, glyph sizes, images)
     plus one over pdfplumber (word bboxes near the page edges). Returns
-    {page_count, font_names, tiny_char_fraction, image_count, edge_text}.
+    {page_count, font_names, tiny_char_fraction, image_count, edge_text,
+    is_encrypted}.
     """
     font_names = set()
     image_xrefs = set()
@@ -47,6 +48,12 @@ def pdf_stats(data):
     total_chars = 0
     with fitz.open(stream=data, filetype="pdf") as doc:
         page_count = doc.page_count
+        # Owner-password ("permissions") PDFs auto-authenticate with the
+        # empty user password, leaving is_encrypted/needs_pass False — the
+        # metadata encryption method string still exposes them.
+        is_encrypted = bool(
+            doc.is_encrypted or doc.needs_pass or (doc.metadata or {}).get("encryption")
+        )
         for page in doc:
             for font in page.get_fonts(full=True):
                 basefont = font[3]
@@ -83,6 +90,7 @@ def pdf_stats(data):
         "tiny_char_fraction": tiny_chars / total_chars if total_chars else 0.0,
         "image_count": len(image_xrefs),
         "edge_text": edge_text,
+        "is_encrypted": is_encrypted,
     }
 
 
