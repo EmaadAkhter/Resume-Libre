@@ -5,7 +5,9 @@ from core.event_types import Events
 from services.events import bus
 from services.genrate_resume import generate_resume_content, generate_resume_stream
 from services.github import fetch_github_readme
+from services.huggingface import fetch_huggingface_profile
 from services.linkedin import fetch_linkedin_profile
+from services.orcid import fetch_orcid_profile
 from services.prompt import build_user_prompt
 
 
@@ -52,6 +54,8 @@ class ResumePipeline:
         self,
         github_username: str = "",
         linkedin_url: str = "",
+        hf_username: str = "",
+        orcid_id: str = "",
         additional_info: str = "",
         job_description: str = "",
         priority: str = "experience",
@@ -86,6 +90,23 @@ class ResumePipeline:
                 Events.README_FETCHED, {"linkedin": True, "fields": len(linkedin_data)}
             )
 
+        # Stage 1c: Fetch HuggingFace profile
+        hf_data = {}
+        if hf_username:
+            hf_data = await fetch_huggingface_profile(hf_username)
+            await bus.publish(
+                Events.README_FETCHED,
+                {"source": "huggingface", "fields": len(hf_data)},
+            )
+
+        # Stage 1d: Fetch ORCID profile
+        orcid_data = {}
+        if orcid_id:
+            orcid_data = await fetch_orcid_profile(orcid_id)
+            await bus.publish(
+                Events.README_FETCHED, {"source": "orcid", "fields": len(orcid_data)}
+            )
+
         # Stage 2: Build the prompt
         user_prompt = build_user_prompt(
             github_username,
@@ -96,6 +117,8 @@ class ResumePipeline:
             linkedin_data=linkedin_data,
             job_description=job_description,
             ats_feedback=ats_feedback,
+            hf_data=hf_data,
+            orcid_data=orcid_data,
         )
         user_prompt = await self._apply_middleware("prompt_build", user_prompt)
         await bus.publish(Events.PROMPT_BUILT, {"length": len(user_prompt)})
@@ -114,6 +137,8 @@ class ResumePipeline:
         self,
         github_username: str = "",
         linkedin_url: str = "",
+        hf_username: str = "",
+        orcid_id: str = "",
         additional_info: str = "",
         job_description: str = "",
         priority: str = "experience",
@@ -150,6 +175,23 @@ class ResumePipeline:
                 Events.README_FETCHED, {"linkedin": True, "fields": len(linkedin_data)}
             )
 
+        # Stage 1c: Fetch HuggingFace profile
+        hf_data = {}
+        if hf_username:
+            hf_data = await fetch_huggingface_profile(hf_username)
+            await bus.publish(
+                Events.README_FETCHED,
+                {"source": "huggingface", "fields": len(hf_data)},
+            )
+
+        # Stage 1d: Fetch ORCID profile
+        orcid_data = {}
+        if orcid_id:
+            orcid_data = await fetch_orcid_profile(orcid_id)
+            await bus.publish(
+                Events.README_FETCHED, {"source": "orcid", "fields": len(orcid_data)}
+            )
+
         # Stage 2: Build the prompt
         user_prompt = build_user_prompt(
             github_username,
@@ -160,6 +202,8 @@ class ResumePipeline:
             linkedin_data=linkedin_data,
             job_description=job_description,
             ats_feedback=ats_feedback,
+            hf_data=hf_data,
+            orcid_data=orcid_data,
         )
         user_prompt = await self._apply_middleware("prompt_build", user_prompt)
         await bus.publish(Events.PROMPT_BUILT, {"length": len(user_prompt)})

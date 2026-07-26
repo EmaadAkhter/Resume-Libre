@@ -10,6 +10,8 @@ export function useGenerationStream() {
 
     if (params.github_username) queryParams.set('github_username', params.github_username)
     if (params.linkedin_url) queryParams.set('linkedin_url', params.linkedin_url)
+    if (params.hf_username) queryParams.set('hf_username', params.hf_username)
+    if (params.orcid_id) queryParams.set('orcid_id', params.orcid_id)
     if (params.additional_info) queryParams.set('additional_info', params.additional_info)
     if (params.job_description) queryParams.set('job_description', params.job_description)
     if (params.priority) queryParams.set('priority', params.priority)
