@@ -41,7 +41,7 @@ export default function AtsCheck({ inShell = false }) {
   const ambiguousCount = report?.extracted
     ? RESOLVABLE.filter((k) => {
         const r = report.extracted[k]
-        return r && (r.failed || r.confidence === 'low')
+        return r && (r.failed || r.confidence === 'low' || r.value == null)
       }).length
     : 0
 

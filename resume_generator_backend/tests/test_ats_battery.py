@@ -195,7 +195,8 @@ def test_endpoint_five_fonts_warn(client):
     page = doc.new_page()
     page.insert_textbox(fitz.Rect(72, 72, 523, 300), BODY_TEXT, fontsize=10)
     y = 320
-    for fontname in ("helv", "tiro", "cour", "hebo", "tibo"):
+    # five DISTINCT families — bold/size variants now collapse into one
+    for fontname in ("helv", "tiro", "cour", "symb", "zadb"):
         page.insert_text(
             fitz.Point(72, y), f"line set in {fontname}", fontname=fontname
         )
@@ -513,3 +514,15 @@ def test_resume_length_uses_best_extraction():
     check = resume_length(max(glued_words, real_words))
     assert check["status"] == "pass"
     assert check["metric"]["value"] == real_words
+
+
+def test_font_family_normalization():
+    from ats.extractors import _font_family
+
+    # pdflatex optical sizes collapse to one family
+    assert _font_family("ABCDEF+LMRoman10-Regular-Identity-H") == "LMRoman"
+    assert _font_family("LMRoman12-Regular-Identity-H") == "LMRoman"
+    assert _font_family("TeXGyreTermesX-Bold-Identity-H") == "TeXGyreTermesX"
+    assert _font_family("TeXGyreTermesX-Italic-Identity-H") == "TeXGyreTermesX"
+    # distinct families stay distinct
+    assert _font_family("Helvetica") != _font_family("LMRoman10-Regular")
