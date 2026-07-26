@@ -16,6 +16,8 @@ export default function ResumeForm({
 }) {
   const [githubUsername, setGithubUsername] = useState('')
   const [linkedinUrl, setLinkedinUrl] = useState('')
+  const [linkedinMode, setLinkedinMode] = useState('paste') // 'paste' | 'url'
+  const [linkedinText, setLinkedinText] = useState('')
   const [additionalInfo, setAdditionalInfo] = useState('')
   const [jobDescription, setJobDescription] = useState('')
   const [priority, setPriority] = useState('experience')
@@ -92,7 +94,7 @@ export default function ResumeForm({
   }
 
   const handleGenerate = () => {
-    if (!githubUsername && !linkedinUrl && !additionalInfo) {
+    if (!githubUsername && !linkedinUrl && !additionalInfo && !linkedinText) {
       eventBus.emit(EVENTS.NOTIFICATION_SHOW, {
         type: 'error',
         message: 'Please provide a GitHub username, LinkedIn URL, or additional information',
@@ -108,10 +110,15 @@ export default function ResumeForm({
       return
     }
 
+    // Pasted LinkedIn text rides in the additional_info prompt slot — no scraping needed
+    const info = linkedinText.trim()
+      ? `${additionalInfo}\n\n--- LinkedIn profile (pasted) ---\n${linkedinText.trim()}`.trim()
+      : additionalInfo
+
     onGenerate({
       github_username: githubUsername || null,
-      linkedin_url: linkedinUrl || null,
-      additional_info: additionalInfo || null,
+      linkedin_url: linkedinMode === 'url' ? linkedinUrl || null : null,
+      additional_info: info || null,
       job_description: jobDescription || null,
       priority,
       custom_system_prompt: customSystemPrompt,
@@ -136,15 +143,52 @@ export default function ResumeForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">LinkedIn Profile URL</label>
-        <input
-          type="url"
-          value={linkedinUrl}
-          onChange={(e) => setLinkedinUrl(e.target.value)}
-          placeholder="https://linkedin.com/in/username"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-        />
-        <p className="mt-1 text-xs text-gray-500">We'll scrape your work history, education & skills</p>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-sm font-medium text-gray-700">LinkedIn (Optional)</label>
+          <div className="flex text-xs rounded-lg border border-gray-300 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setLinkedinMode('paste')}
+              className={`px-2 py-1 ${linkedinMode === 'paste' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600'}`}
+            >
+              Paste text
+            </button>
+            <button
+              type="button"
+              onClick={() => setLinkedinMode('url')}
+              className={`px-2 py-1 ${linkedinMode === 'url' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600'}`}
+            >
+              URL
+            </button>
+          </div>
+        </div>
+        {linkedinMode === 'paste' ? (
+          <>
+            <textarea
+              value={linkedinText}
+              onChange={(e) => setLinkedinText(e.target.value)}
+              placeholder="Open your LinkedIn profile, select all (Ctrl/Cmd+A), copy, and paste here..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm h-24 resize-none"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Fastest & most reliable — no scraping involved
+            </p>
+          </>
+        ) : (
+          <>
+            <input
+              type="url"
+              value={linkedinUrl}
+              onChange={(e) => setLinkedinUrl(e.target.value)}
+              placeholder="https://linkedin.com/in/username"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              We'll try to fetch your profile — can take a few minutes and requires the server to
+              have scraping configured. Pasting text is faster.
+            </p>
+          </>
+        )}
       </div>
 
       <div>
