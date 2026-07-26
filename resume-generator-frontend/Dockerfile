@@ -1,7 +1,12 @@
 # ─── Build stage ────────────────────────────────────
 FROM node:20-alpine AS build
+# Vite bakes these in at build time — all three must be passed as build args
 ARG VITE_API_URL=/api
-ENV VITE_API_URL=$VITE_API_URL
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+ENV VITE_API_URL=$VITE_API_URL \
+    VITE_SUPABASE_URL=$VITE_SUPABASE_URL \
+    VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm install

@@ -18,6 +18,8 @@ jobs:
             image: ghcr.io/${{ github.repository_owner }}/resume-libre-backend
           - context: resume-generator-frontend
             image: ghcr.io/${{ github.repository_owner }}/resume-libre-frontend
+          - context: latex-service
+            image: ghcr.io/${{ github.repository_owner }}/resume-libre-latex-service
 
     steps:
       - uses: actions/checkout@v4
@@ -48,3 +50,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # Vite bakes these into the frontend bundle at build time.
+          # Ignored by the other images. Set as repo secrets before tagging.
+          build-args: |
+            VITE_API_URL=/api
+            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
+            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}

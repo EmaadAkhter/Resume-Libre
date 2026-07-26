@@ -1,0 +1,19 @@
+# Overlay: pull prebuilt images from GHCR instead of building on the VPS
+# (a 1vCPU box building Vite + Tectonic will thrash).
+#
+#   docker compose -f docker-compose.prod.yml -f docker-compose.ghcr.yml pull
+#   docker compose -f docker-compose.prod.yml -f docker-compose.ghcr.yml up -d
+#
+# Images are pushed by .github/workflows/docker.yml on v* tags.
+# NOTE: the frontend image bakes VITE_* values at build time — set the
+# VITE_SUPABASE_* repo secrets so the GH Action builds it correctly.
+services:
+  backend:
+    image: ghcr.io/emaadakhter/resume-libre-backend:latest
+    build: !reset null
+  frontend:
+    image: ghcr.io/emaadakhter/resume-libre-frontend:latest
+    build: !reset null
+  latex-service:
+    image: ghcr.io/emaadakhter/resume-libre-latex-service:latest
+    build: !reset null
