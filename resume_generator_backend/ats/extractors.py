@@ -19,6 +19,14 @@ def extract_pdf_pymupdf(data):
         return "\n".join(page.get_text() for page in doc)
 
 
+def extract_pdf_links(data):
+    """URI targets of every link annotation, across all pages."""
+    with fitz.open(stream=data, filetype="pdf") as doc:
+        return [
+            link["uri"] for page in doc for link in page.get_links() if link.get("uri")
+        ]
+
+
 def extract_docx(data):
     """Return (text, table_count) from a DOCX in one pass."""
     document = docx.Document(io.BytesIO(data))

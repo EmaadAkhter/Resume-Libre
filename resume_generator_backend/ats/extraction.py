@@ -12,15 +12,47 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from ats.skills import extract_skills
+
 # Canonical regexes — moved here from checks.py, which imports them back.
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 # ponytail: naive candidate-then-digit-count phone matching; year ranges with
 # 9+ digits can false-positive. Upgrade path: the `phonenumbers` library.
 PHONE_CANDIDATE_RE = re.compile(r"\+?[\d(][\d\s().-]{7,}\d")
+# Section header synonyms → canonical section names. HEADER_RE matches any
+# synonym at line start; find_sections() maps hits back to canonical names.
+SECTION_SYNONYMS = {
+    "experience": [
+        "experience",
+        "work experience",
+        "employment",
+        "work history",
+        "internship",
+    ],
+    "education": ["education", "academic", "qualifications"],
+    "skills": ["skills", "technical skills", "core competencies", "technologies"],
+    "projects": ["projects", "personal projects", "academic projects", "portfolio"],
+    "summary": ["summary", "objective", "profile", "about me", "career objective"],
+    "certifications": ["certifications", "certificates", "courses", "training"],
+}
+_SYNONYM_TO_CANONICAL = {
+    synonym: canonical
+    for canonical, synonyms in SECTION_SYNONYMS.items()
+    for synonym in synonyms
+}
 HEADER_RE = re.compile(
-    r"^\s*(experience|education|skills|projects|summary|work history)\b",
+    # Longest synonym first so "work experience" wins over "experience".
+    r"^\s*(" + "|".join(sorted(_SYNONYM_TO_CANONICAL, key=len, reverse=True)) + r")\b",
     re.IGNORECASE | re.MULTILINE,
 )
+
+
+def find_sections(text: str) -> list[str]:
+    """Canonical section names found in the text, deduped and sorted."""
+    return sorted(
+        {_SYNONYM_TO_CANONICAL[m.group(1).lower()] for m in HEADER_RE.finditer(text)}
+    )
+
 
 # Looser phone candidate than the checklist's: also catches short digit runs
 # labeled as a phone so we can flag them as malformed instead of missing.
@@ -116,13 +148,52 @@ def _extract_dates(text):
 
 
 def _extract_sections(text):
-    found = sorted({m.group(1).lower() for m in HEADER_RE.finditer(text)})
+    found = find_sections(text)
     return FieldResult(value=found or None)
 
 
-def extract_fields_rules(text: str) -> dict[str, FieldResult]:
-    """Extract resume fields with regexes and heuristics only (no ML)."""
-    return {
+def _extract_skills(text):
+    found = extract_skills(text)
+    return FieldResult(value=found or None)
+
+
+# Which link URI marks which contact field. Contract with checks.py: these
+# three fields are otherwise always method="regex", so method="heuristic" on
+# email/linkedin/github can only mean "recovered from a link annotation" —
+# the link-only-contact check keys off exactly that.
+_LINK_FIELD_MARKERS = {
+    "linkedin": "linkedin.com/in/",
+    "github": "github.com/",
+    "email": "mailto:",
+}
+
+
+def _fill_from_links(fields, links):
+    for field, marker in _LINK_FIELD_MARKERS.items():
+        result = fields[field]
+        if result.value is not None or result.failed:
+            continue
+        for uri in links:
+            index = uri.lower().find(marker)
+            if index == -1:
+                continue
+            # For mailto: links the address itself is the value.
+            value = uri[index + len(marker) :] if field == "email" else uri
+            fields[field] = FieldResult(
+                value=value, method="heuristic", confidence="low"
+            )
+            break
+
+
+def extract_fields_rules(
+    text: str, links: list[str] | None = None
+) -> dict[str, FieldResult]:
+    """Extract resume fields with regexes and heuristics only (no ML).
+
+    `links` are PDF link-annotation URIs; contact fields invisible in the
+    text but present as annotations are filled from them at low confidence.
+    """
+    fields = {
         "email": _extract_regex(EMAIL_RE, text),
         "phone": _extract_phone(text),
         "linkedin": _extract_regex(LINKEDIN_RE, text),
@@ -130,4 +201,8 @@ def extract_fields_rules(text: str) -> dict[str, FieldResult]:
         "name": _extract_name(text),
         "dates": _extract_dates(text),
         "sections": _extract_sections(text),
+        "skills": _extract_skills(text),
     }
+    if links:
+        _fill_from_links(fields, links)
+    return fields

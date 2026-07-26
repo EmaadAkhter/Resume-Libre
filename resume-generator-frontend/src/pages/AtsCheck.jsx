@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   CheckCircle,
   FileSearch,
+  Lightbulb,
   Loader2,
   Sparkles,
   Upload,
@@ -16,6 +17,7 @@ const STATUS_META = {
   pass: { Icon: CheckCircle, color: 'text-green-600', label: 'Pass' },
   warn: { Icon: AlertTriangle, color: 'text-yellow-600', label: 'Warning' },
   fail: { Icon: XCircle, color: 'text-red-600', label: 'Fail' },
+  info: { Icon: Lightbulb, color: 'text-blue-600', label: 'suggestion' },
 }
 
 const FIELD_LABELS = {
@@ -26,6 +28,7 @@ const FIELD_LABELS = {
   name: 'Name',
   dates: 'Dates',
   sections: 'Sections',
+  skills: 'Skills',
 }
 
 const CONFIDENCE_META = {
@@ -255,13 +258,27 @@ export default function AtsCheck() {
                     const value = Array.isArray(result.value)
                       ? result.value.join(', ')
                       : result.value
+                    // "not found" without a failure is a plain absence — a
+                    // confidence badge there would imply we parsed something.
+                    const showBadge = result.value != null || result.failed
                     return (
                       <div key={field} className="p-4 flex items-start gap-3">
                         <span className="w-20 shrink-0 text-sm font-medium text-gray-700">
                           {FIELD_LABELS[field] || field}
                         </span>
                         <div className="min-w-0 flex-1">
-                          {value ? (
+                          {field === 'skills' && Array.isArray(result.value) ? (
+                            <div className="flex flex-wrap gap-1.5">
+                              {result.value.map((skill) => (
+                                <span
+                                  key={skill}
+                                  className="px-2 py-0.5 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-200"
+                                >
+                                  {skill}
+                                </span>
+                              ))}
+                            </div>
+                          ) : value ? (
                             <p className="text-sm text-gray-900 break-words">{value}</p>
                           ) : (
                             <p className="text-sm text-gray-400">not found</p>
@@ -274,11 +291,13 @@ export default function AtsCheck() {
                             </p>
                           )}
                         </div>
-                        <span
-                          className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${conf.className}`}
-                        >
-                          {conf.label}
-                        </span>
+                        {showBadge && (
+                          <span
+                            className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${conf.className}`}
+                          >
+                            {conf.label}
+                          </span>
+                        )}
                       </div>
                     )
                   })}
@@ -322,7 +341,13 @@ export default function AtsCheck() {
               </div>
             )}
 
-            <p className="mt-6 text-xs text-gray-500 text-center">
+            <p className="mt-6 text-xs text-gray-400 text-center">
+              Checks are calibrated against a small manual dataset and generic
+              PDF-extraction behavior — not against any commercial ATS's
+              internal parser.
+            </p>
+
+            <p className="mt-4 text-xs text-gray-500 text-center">
               Want a resume that passes these checks by construction?{' '}
               <Link to="/" className="underline hover:text-gray-700">
                 Generate one with Resume-Libre

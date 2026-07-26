@@ -16,6 +16,11 @@ AGREEMENT_WARN = 0.75  # below this => fail
 # content-completeness (Jaccard similarity of word sets)
 COMPLETENESS_PASS = 0.90
 
+# glued-words diagnosis: one extractor sees far fewer word breaks than the
+# other for the same characters. Flag when the lower word-space density is
+# below this fraction of the higher one.
+GLUED_DENSITY_RATIO = 0.6
+
 # section-headers
 MIN_SECTION_HEADERS = 2
 
@@ -23,3 +28,7 @@ MIN_SECTION_HEADERS = 2
 GUTTER_MIN_WIDTH_PT = 18  # horizontal whitespace wider than this splits columns
 MIN_COLUMN_WORDS = 10  # a cluster needs this many words to count as a column
 HEADER_BAND_FRACTION = 0.15  # ignore the top slice of each page (full-width headers)
+
+# layout — margin-contact detection: the top/bottom page fraction treated as
+# the header/footer band that many ATS parsers skip.
+MARGIN_BAND_FRACTION = 0.08

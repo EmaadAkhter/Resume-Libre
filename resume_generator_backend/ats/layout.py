@@ -14,9 +14,11 @@ import io
 
 import pdfplumber
 
+from ats.extraction import EMAIL_RE, PHONE_CANDIDATE_RE, _phone_sane
 from ats.thresholds import (
     GUTTER_MIN_WIDTH_PT,
     HEADER_BAND_FRACTION,
+    MARGIN_BAND_FRACTION,
     MIN_COLUMN_WORDS,
 )
 
@@ -38,6 +40,40 @@ def _column_count(page):
         else:
             clusters.append([x0, x1, 1])
     return max(1, sum(1 for c in clusters if c[2] >= MIN_COLUMN_WORDS))
+
+
+def _has_email(text):
+    return bool(EMAIL_RE.search(text))
+
+
+def _has_phone(text):
+    return any(_phone_sane(m.group(0)) for m in PHONE_CANDIDATE_RE.finditer(text))
+
+
+def contact_in_margins(data):
+    """True when email or phone exists only in the header/footer band.
+
+    Words in the top/bottom MARGIN_BAND_FRACTION of any page are margin
+    text; everything else is body text. A contact detail that appears in
+    the margins but nowhere in the body is invisible to parsers that skip
+    header/footer regions.
+    """
+    margin_words = []
+    body_words = []
+    with pdfplumber.open(io.BytesIO(data)) as pdf:
+        for page in pdf.pages:
+            top_band = page.height * MARGIN_BAND_FRACTION
+            bottom_band = page.height * (1 - MARGIN_BAND_FRACTION)
+            for word in page.extract_words():
+                if word["top"] < top_band or word["bottom"] > bottom_band:
+                    margin_words.append(word["text"])
+                else:
+                    body_words.append(word["text"])
+    margin_text = " ".join(margin_words)
+    body_text = " ".join(body_words)
+    return (_has_email(margin_text) and not _has_email(body_text)) or (
+        _has_phone(margin_text) and not _has_phone(body_text)
+    )
 
 
 def analyze(data):

@@ -90,7 +90,8 @@ def test_clean_single_column_pdf_passes_all_checks(client):
     assert resp.status_code == 200
     body = resp.json()
     assert body["filename"] == "resume.pdf"
-    assert body["summary"] == {"passed": 7, "warned": 0, "failed": 0}
+    # 7 original checks + link-only-contact + header-footer-contact
+    assert body["summary"] == {"passed": 9, "warned": 0, "failed": 0}
     assert all(c["status"] == "pass" for c in body["checks"])
     assert "score" not in body  # checklist only, no blended score
 

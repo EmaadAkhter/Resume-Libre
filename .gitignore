@@ -64,6 +64,9 @@ desktop.ini
 *.log
 logs/
 
+# ─── ATS calibration samples (real resumes, never commit) ─
+calibration/
+
 # ─── Deployment guide (keep local, track with issues) ─
 *-filled.tex
 *-filled.pdf
