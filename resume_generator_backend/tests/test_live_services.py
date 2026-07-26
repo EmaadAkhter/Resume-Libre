@@ -25,8 +25,15 @@ def _async_client_returning(response=None, error=None):
 
 @pytest.fixture(autouse=True)
 def no_redis():
-    """Redis unreachable — exercises the cache-miss fallback path."""
-    with patch("services.cache.get_redis", side_effect=Exception("no redis")):
+    """Redis unreachable — exercises the cache-miss fallback path.
+
+    Patch the names imported into each service module, not services.cache —
+    `from services.cache import get_redis` binds a local reference.
+    """
+    with (
+        patch("services.github.get_redis", side_effect=Exception("no redis")),
+        patch("services.linkedin.get_redis", side_effect=Exception("no redis")),
+    ):
         yield
 
 
