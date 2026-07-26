@@ -7,7 +7,7 @@ disk (PII policy, see PRIVACY.md).
 
 from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 
-from ats import checks, extractors, input_handler, layout, report
+from ats import checks, extraction, extractors, input_handler, layout, report
 from core.limiter import limiter
 
 router = APIRouter(prefix="/ats", tags=["ats"])
@@ -35,6 +35,7 @@ async def check_resume(request: Request, file: UploadFile = File(...)):
                 checks.section_headers(plumber_text),
                 checks.contact_info(plumber_text),
             ]
+            best_text = plumber_text
         else:
             # ponytail: DOCX layout inspection is shallow — python-docx sees
             # tables but not multi-column section formatting. Upgrade path:
@@ -49,6 +50,7 @@ async def check_resume(request: Request, file: UploadFile = File(...)):
                 checks.section_headers(text),
                 checks.contact_info(text),
             ]
+            best_text = text
     except HTTPException:
         raise
     except Exception:
@@ -58,4 +60,5 @@ async def check_resume(request: Request, file: UploadFile = File(...)):
             "password-protected.",
         )
 
-    return report.build_report(file.filename, results)
+    extracted = extraction.extract_fields_rules(best_text)
+    return report.build_report(file.filename, results, extracted)
