@@ -1,11 +1,41 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { FileText, FileSearch, LogOut, Menu, X } from 'lucide-react'
+import { FileText, FileSearch, Globe, LogOut, Menu, X } from 'lucide-react'
+import { supabase } from '../lib/supabase'
+import { eventBus } from '../lib/eventBus'
+import { EVENTS } from '../lib/eventTypes'
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'My Resumes', Icon: FileText },
   { to: '/ats-check', label: 'ATS Check', Icon: FileSearch },
 ]
+
+// True while the user has a live published resume — drives the
+// "Public resume" nav item and stays in sync with Publish/Unpublish.
+function usePublishedState(user) {
+  const [published, setPublished] = useState(false)
+
+  useEffect(() => {
+    if (!user) return undefined
+    let cancelled = false
+    const refresh = () =>
+      supabase
+        .from('public_resumes')
+        .select('user_id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+        .then(({ data }) => !cancelled && setPublished(Boolean(data)))
+        .catch(() => {})
+    refresh()
+    eventBus.on(EVENTS.PUBLISH_CHANGED, refresh)
+    return () => {
+      cancelled = true
+      eventBus.off(EVENTS.PUBLISH_CHANGED, refresh)
+    }
+  }, [user])
+
+  return published
+}
 
 function navLinkClass({ isActive }) {
   return `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
@@ -17,6 +47,7 @@ function navLinkClass({ isActive }) {
 
 function SidebarContent({ user, profile, logout, onNavigate }) {
   const navigate = useNavigate()
+  const published = usePublishedState(user)
 
   return (
     <div className="flex flex-col h-full">
@@ -38,6 +69,16 @@ function SidebarContent({ user, profile, logout, onNavigate }) {
             {label}
           </NavLink>
         ))}
+        {published && (
+          <NavLink
+            to={`/r/${user.id}`}
+            className={navLinkClass}
+            onClick={onNavigate}
+          >
+            <Globe className="w-4 h-4 shrink-0" />
+            Public resume
+          </NavLink>
+        )}
       </nav>
 
       <div className="px-4 py-4 border-t border-gray-200">

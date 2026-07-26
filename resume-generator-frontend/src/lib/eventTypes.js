@@ -9,6 +9,9 @@ export const EVENTS = {
   NOTIFICATION_SHOW: 'notification:show',
   NOTIFICATION_DISMISS: 'notification:dismiss',
 
+  // Public resume hosting
+  PUBLISH_CHANGED: 'publish:changed',
+
   // Backend connection status
   BACKEND_CONNECTED: 'backend:connected',
   BACKEND_DISCONNECTED: 'backend:disconnected',

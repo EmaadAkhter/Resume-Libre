@@ -57,6 +57,7 @@ export default function PublishMenu({ user, resume, pdfUrl }) {
       if (rowErr) throw rowErr
 
       setPublished(true)
+      eventBus.emit(EVENTS.PUBLISH_CHANGED)
       await navigator.clipboard.writeText(publicUrl).catch(() => {})
       toast('success', `Published! Link copied: ${publicUrl}`)
     } catch (err) {
@@ -83,6 +84,7 @@ export default function PublishMenu({ user, resume, pdfUrl }) {
         .eq('user_id', user.id)
       if (error) throw error
       setPublished(false)
+      eventBus.emit(EVENTS.PUBLISH_CHANGED)
       toast('success', 'Resume unpublished — the public link is dead.')
     } catch (err) {
       toast('error', err.message || 'Unpublish failed')
