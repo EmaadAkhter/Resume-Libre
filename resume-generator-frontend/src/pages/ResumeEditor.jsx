@@ -333,6 +333,7 @@ export default function ResumeEditor({ user }) {
               selectedTemplate={selectedTemplate}
               onSelectTemplate={selectTemplate}
               user={user}
+              customSystemPrompt={customSystemPrompt}
             />
           </div>
         </div>

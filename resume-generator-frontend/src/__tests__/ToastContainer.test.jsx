@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
 import ToastContainer from '../components/ToastContainer'
 import { eventBus } from '../lib/eventBus'
 import { EVENTS } from '../lib/eventTypes'
