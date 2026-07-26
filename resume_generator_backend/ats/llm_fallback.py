@@ -168,7 +168,10 @@ async def resolve_low_confidence(
     unresolved = [
         field
         for field, result in rules.items()
-        if (result.failed or result.confidence != "high") and field in _RESOLVABLE
+        # failed, uncertain, OR absent — a field the regexes never found is
+        # exactly what the LLM pass exists to recover (#30).
+        if (result.failed or result.confidence != "high" or result.value is None)
+        and field in _RESOLVABLE
     ]
     if not unresolved:
         return rules

@@ -173,7 +173,8 @@ CLEAN_RESUME_TEXT = """Jane Doe
 jane@x.com | +1 555-123-4567
 
 Experience
-Software Engineer, Jan 2020 – Present
+Software Engineer
+Jan 2020 - Present
 
 Education
 B.S. Computer Science

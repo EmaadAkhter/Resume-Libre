@@ -14,6 +14,20 @@ from ats.thresholds import EDGE_PROXIMITY_FRACTION, TINY_FONT_PT
 # Embedded font subsets are named "ABCDEF+RealName"; strip the tag so the
 # same font subsetted twice is not counted as two fonts.
 _SUBSET_PREFIX_RE = re.compile(r"^[A-Z]{6}\+")
+# LMRoman10-Regular-Identity-H and LMRoman12-Regular-Identity-H are the SAME
+# family at different optical sizes (standard pdflatex output) — normalize to
+# the family so font-count measures families, not size/style variants.
+_FONT_NOISE_RE = re.compile(
+    r"(-Identity-H|-(Regular|Bold|Italic|BoldItalic|Oblique|Light|Medium))+$",
+    re.IGNORECASE,
+)
+_FONT_SIZE_SUFFIX_RE = re.compile(r"\d+$")
+
+
+def _font_family(basefont: str) -> str:
+    name = _SUBSET_PREFIX_RE.sub("", basefont)
+    name = _FONT_NOISE_RE.sub("", name)
+    return _FONT_SIZE_SUFFIX_RE.sub("", name) or name
 
 
 def extract_pdf_pdfplumber(data):
@@ -58,7 +72,7 @@ def pdf_stats(data):
             for font in page.get_fonts(full=True):
                 basefont = font[3]
                 if basefont:
-                    font_names.add(_SUBSET_PREFIX_RE.sub("", basefont))
+                    font_names.add(_font_family(basefont))
             for image in page.get_images(full=True):
                 image_xrefs.add(image[0])  # xref — same image reused counts once
             for block in page.get_text("dict")["blocks"]:
