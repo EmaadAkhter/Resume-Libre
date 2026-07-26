@@ -57,7 +57,13 @@ export function useSupabaseAuth() {
   }, [])
 
   const logout = useCallback(async () => {
-    await supabase.auth.signOut()
+    // Global sign-out 403s when the server already revoked the token —
+    // fall back to clearing the local session so the user isn't stuck
+    // "logged in" with a dead token.
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      await supabase.auth.signOut({ scope: 'local' }).catch(() => {})
+    }
     setUser(null)
     setProfile(null)
     eventBus.emit(EVENTS.AUTH_LOGOUT)
