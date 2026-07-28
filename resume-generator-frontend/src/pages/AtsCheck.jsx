@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, Loader2, Sparkles, Upload } from 'lucide-react'
 import { authHeaders } from '../lib/api'
 import AtsReport from '../components/ats/AtsReport'
+import JobMatchCta from '../components/ats/JobMatchCta'
 
 // The basic check needs no account — the endpoint is unauthenticated by
 // design and everything is processed in memory server-side. Only the
@@ -232,6 +233,8 @@ export default function AtsCheck({ inShell = false }) {
               PDF-extraction behavior — not against any commercial ATS's
               internal parser.
             </p>
+
+            <JobMatchCta report={report} />
 
             <p className="mt-4 text-xs text-gray-500 text-center">
               Want a resume that passes these checks by construction?{' '}
