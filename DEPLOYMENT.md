@@ -1,6 +1,8 @@
 # Self-Hosting / Deployment Guide
 
-Runs on any 2 GB Docker host. Reference setup: Hostinger KVM2 (2 GB / 1 vCPU) · Ubuntu 24.04 · Docker Compose · Caddy (auto-SSL). Swap `resumelibre.com` for your own domain throughout.
+Runs on any 2 GB Docker host; 4 GB is comfortable. Ubuntu 24.04 · Docker Compose · Caddy (auto-SSL). Swap `resumelibre.com` for your own domain throughout.
+
+**Whole stack costs about $5/month.** Reference picks: a Hetzner CX22 (2 vCPU / 4 GB / 40 GB NVMe, ~€3.79) or any 2 GB VPS, plus a domain from Cloudflare Registrar (at-cost `.com`, ~$10/year, with free DNS and analytics). Supabase, Resend, Sentry, UptimeRobot and GHCR all sit inside their free tiers. Measured idle footprint is ~840 MB, peaking ~1.35 GB during a LaTeX compile.
 
 ## RAM budget (2 GB box)
 
@@ -59,9 +61,16 @@ Caddy provisions the Let's Encrypt cert on first request (~30 s).
 ## Supabase setup
 
 1. Create a free project, grab URL + anon + service keys into `.env`.
-2. SQL Editor → run each file in `supabase/migrations/` in order (001 → 004), then `supabase/seed.sql`.
+2. SQL Editor → run each file in `supabase/migrations/` in order (001 → 006), then `supabase/seed.sql`.
 3. Auth → URL Configuration: set Site URL to `https://yourdomain.com` (makes email verification/reset links work).
-4. Optional admin: `UPDATE profiles SET role='admin' WHERE email='you@example.com';`
+4. **Custom SMTP — do this before taking real signups.** Supabase's built-in
+   email sender is capped at **2 messages per hour for the whole project**, so
+   the third person who registers never gets a confirmation mail. Create a free
+   [Resend](https://resend.com) account (3,000 emails/month), then Auth → SMTP
+   Settings → enter its host/port/user/password and a verified From address.
+   Afterwards raise Auth → Rate Limits (custom SMTP starts at 30/hour). Custom
+   SMTP is also the only way to edit the auth email templates.
+5. Optional admin: `UPDATE profiles SET role='admin' WHERE email='you@example.com';`
 
 ## Environment variables
 
@@ -85,7 +94,8 @@ docker compose -f docker-compose.prod.yml -f docker-compose.ghcr.yml up -d
 
 - [ ] `https://yourdomain.com` shows the landing page (green lock)
 - [ ] `https://yourdomain.com/api/health` → `{"status": "healthy", ...}`
-- [ ] Register → verification email arrives → login works
+- [ ] Register → verification email arrives (via custom SMTP) → login works
+- [ ] Publish a resume → `/r/<user_id>` loads for a logged-out visitor
 - [ ] Generation streams and the PDF preview renders
 - [ ] `/demo` works logged-out (if `ALLOW_DEMO_REQUESTS=true`)
 - [ ] Generate 11× in an hour → 11th returns 429; still 429 after `docker compose restart backend`
@@ -94,8 +104,9 @@ docker compose -f docker-compose.prod.yml -f docker-compose.ghcr.yml up -d
 ## Cost guardrails
 
 - Set a **hard spend cap in the OpenRouter dashboard** — the single biggest launch-day risk is uncapped LLM spend.
+- **Free OpenRouter models are capped at 50 requests/day** until you have bought $10 of credits, which raises the daily limit to 1,000 permanently (it stays there even after the balance runs out). A launch spike exhausts 50 in minutes, so buy the $10 before you announce anything.
 - Rate limits are Redis-backed and per-user/IP (`core/limiter.py`).
-- Keep `APIFY_API_TOKEN` empty unless you need URL scraping; paste-text input costs nothing.
+- Keep `APIFY_API_TOKEN` empty unless you need URL scraping; paste-text input costs nothing and avoids the scraping ToS question entirely.
 
 ## Troubleshooting
 
