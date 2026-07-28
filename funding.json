@@ -1,0 +1,81 @@
+{
+  "version": "v1.0.0",
+  "entity": {
+    "type": "individual",
+    "role": "owner",
+    "name": "Emaad Akhter",
+    "email": "emdansari@gmail.com",
+    "description": "Student engineer building open tools for job seekers. Author and maintainer of Resume-Libre.",
+    "webpageUrl": {
+      "url": "https://github.com/EmaadAkhter"
+    }
+  },
+  "projects": [
+    {
+      "guid": "resume-libre",
+      "name": "Resume-Libre",
+      "description": "Open-source AI resume generator with an honest ATS parseability checker. Turns GitHub, LinkedIn, ORCID and Hugging Face profiles into a tailored LaTeX resume compiled by Tectonic, then runs the PDF through 31 deterministic checks that report exactly how reliably applicant tracking systems can extract its text. Deliberately publishes no aggregate score: every finding ships with a measured value, a reason and a concrete fix. The checker is free and requires no account, because the people most hurt by silent parsing failures are the least able to pay for a fix.",
+      "webpageUrl": {
+        "url": "https://github.com/EmaadAkhter/Resume-Libre"
+      },
+      "repositoryUrl": {
+        "url": "https://github.com/EmaadAkhter/Resume-Libre"
+      },
+      "licenses": ["spdx:AGPL-3.0-only"],
+      "tags": [
+        "resume",
+        "ats",
+        "pdf-parsing",
+        "job-search",
+        "latex",
+        "self-hosted",
+        "privacy",
+        "fastapi",
+        "react",
+        "accessibility"
+      ]
+    }
+  ],
+  "funding": {
+    "channels": [
+      {
+        "guid": "github-sponsors",
+        "type": "payment-provider",
+        "address": "https://github.com/sponsors/EmaadAkhter",
+        "description": "GitHub Sponsors"
+      }
+    ],
+    "plans": [
+      {
+        "guid": "hosting",
+        "status": "active",
+        "name": "Hosting the free public instance",
+        "description": "VPS, domain and LLM inference costs for the free hosted instance, so the ATS parseability checker stays usable without an account or payment.",
+        "amount": 600,
+        "currency": "USD",
+        "frequency": "yearly",
+        "channels": ["github-sponsors"]
+      },
+      {
+        "guid": "maintenance",
+        "status": "active",
+        "name": "Maintenance and development",
+        "description": "Part-time maintenance: calibrating the parseability thresholds against a real labelled resume dataset, expanding the deterministic check battery, DOCX parity, accessibility work, and keeping the self-hosting path working.",
+        "amount": 10000,
+        "currency": "USD",
+        "frequency": "yearly",
+        "channels": ["github-sponsors"]
+      },
+      {
+        "guid": "support-any",
+        "status": "active",
+        "name": "Any amount",
+        "description": "One-off support of any size.",
+        "amount": 0,
+        "currency": "USD",
+        "frequency": "one-time",
+        "channels": ["github-sponsors"]
+      }
+    ]
+  }
+}
