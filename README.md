@@ -178,6 +178,10 @@ Uploaded files are processed **in memory and never written to disk**. Resume con
 
 Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Good first issues: LaTeX resume templates ([#12](https://github.com/EmaadAkhter/Resume-Libre/issues/12)–[#14](https://github.com/EmaadAkhter/Resume-Libre/issues/14)), and the wired-but-unrouted Fresher Wizard ([#3](https://github.com/EmaadAkhter/Resume-Libre/issues/3)).
 
+## Funding
+
+Resume-Libre is free and always will be. If it saved you time, [sponsor the project](https://github.com/sponsors/EmaadAkhter) — funding goes to hosting the free public instance and to calibrating the parseability checker against real resume data. Machine-readable details: [funding.json](funding.json).
+
 ## License
 
 AGPL-3.0 — see [LICENSE](LICENSE).
