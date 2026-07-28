@@ -17,6 +17,7 @@ import VersionHistory from '../components/VersionHistory'
 import BranchManager from '../components/BranchManager'
 import ATSScore from '../components/ATSScore'
 import AtsReport, { CHECK_TITLES } from '../components/ats/AtsReport'
+import JobMatchCta from '../components/ats/JobMatchCta'
 import LoadingScreen from '../components/LoadingScreen'
 
 // One line per non-passing check, in the shape the regeneration prompt
@@ -478,6 +479,7 @@ export default function ResumeEditor({ user }) {
               {parseReport ? (
                 <div className="space-y-4">
                   <AtsReport report={parseReport} />
+                  <JobMatchCta report={parseReport} />
                   {parseIssueCount > 0 && lastParams && (
                     <button
                       onClick={() =>
